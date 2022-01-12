@@ -21,7 +21,7 @@ echo "[$APPNAME][$(date)] Started as an s6 service"
 [[ "$SKYSQUITTER_SOURCE" == "" ]] && $SKYSQUITTER_SOURCE="readsb:30005"
 
 # Do a pre-check to ensure that $SKYSQUITTER_DEST has been defined:
-if [[ "${SKYSQUITTER_SOURCE%%:*}" == "" ]] || [[ "${SKYSQUITTER_SOURCE##*:}" == "" ]]
+if [[ "${SKYSQUITTER_DEST%%:*}" == "" ]] || [[ "${SKYSQUITTER_DEST##*:}" == "" ]]
 then
   echo "|--------------------------------------|"
   echo "|               STOP !!!!              |"
@@ -73,6 +73,7 @@ do
 done
 
 echo "[$APPNAME][$(date)] Destination server can be reached at $SKYSQUITTER_DEST"
+echo "[$APPNAME][$(date)] Starting socat data relay between tcp:$SKYSQUITTER_SOURCE and udp:$SKYSQUITTER_DEST"
 
 # Now we can start parsing data from SOURCE and pass it to DEST:
 socat -d -u tcp:${SKYSQUITTER_SOURCE} udp:${SKYSQUITTER_DEST}

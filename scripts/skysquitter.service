@@ -1,0 +1,9 @@
+[Unit]
+Description=SkySquitter service
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /usr/share/skysquitter airdata.skysquitter.com:xxxxx localhost:30005
+
+[Install]
+WantedBy=multi-user.target
