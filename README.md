@@ -45,7 +45,7 @@ sudo chmod a+rx /usr/share/skysquitter /usr/share/skysquitter/skysquitter.sh
 Then edit the service file and change this line to insert your specific data. You must obtain a port number (to replace `xxxxx`) from SkySquitter before you can use the service. You can also update `localhost:30005` if your source BEAST data comes from another machine or a different port.
 (Note - easiest way to edit is by typing `sudo nano /etc/systemd/system/skysquitter.service`. Make your edits and save/exit with `CTRL-X y`).
 ```
-ExecStart=/bin/bash /usr/share/skysquitter airdata.skysquitter.com:xxxxx localhost:30005
+ExecStart=/bin/bash /usr/share/skysquitter/skysquitter.sh airdata.skysquitter.com:xxxxx localhost:30005
 ```
 Then start the service with this command:
 ```
