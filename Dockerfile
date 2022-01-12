@@ -63,8 +63,6 @@ RUN set -x && \
 
 COPY rootfs/ /
 
-RUN set -x && \
-
 ENTRYPOINT [ "/init" ]
 
 # Add healthcheck
