@@ -59,16 +59,20 @@ do
   sleep 5
 done
 
+echo "[$APPNAME][$(date)] Source server can be reached at $SKYSQUITTER_SOURCE"
+
 # Now check if we can reach the SkySquitter server:
-while [[ $(timeout --preserve-status 5 netcat -u -z -v ${SKYSQUITTER_DEST%%:*} ${SKYSQUITTER_DEST##*:} 2>/dev/null ; echo $?) != "0" ]]
+while [[ $(timeout --preserve-status 10 netcat -u -z -v ${SKYSQUITTER_DEST%%:*} ${SKYSQUITTER_DEST##*:} 2>/dev/null ; echo $?) != "0" ]]
 do
   echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
   echo "[$APPNAME][$(date)] While testing the SKYSQUITTER_DEST parameter, we ran into trouble:"
   echo "[$APPNAME][$(date)] We cannot reach ${SKYSQUITTER_DEST%%:*} on port ${SKYSQUITTER_DEST##*:}."
-	echo "[$APPNAME][$(date)] We will retry every 5 seconds. If this error keeps on repeating, please make sure that"
+	echo "[$APPNAME][$(date)] We will retry in a few seconds. If this error keeps on repeating, please make sure that"
 	echo "[$APPNAME][$(date)] your internet connection is still working."
   sleep 5
 done
+
+echo "[$APPNAME][$(date)] Destination server can be reached at $SKYSQUITTER_DEST"
 
 # Now we can start parsing data from SOURCE and pass it to DEST:
 socat -d -u tcp:${SKYSQUITTER_SOURCE} udp:${SKYSQUITTER_DEST}
