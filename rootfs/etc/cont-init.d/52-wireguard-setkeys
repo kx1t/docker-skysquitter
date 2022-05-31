@@ -12,7 +12,7 @@ then
   exit 1
 fi
 
-if |[[ "SKYSQUITTER_WG_PSK" == "" ]]
+if [[ "SKYSQUITTER_WG_PSK" == "" ]]
 then
   echo "Emergency!"
   echo "SKYSQUITTER_WG_PSK must be set. Please update your configuration and try again!"
