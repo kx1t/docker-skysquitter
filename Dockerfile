@@ -39,14 +39,12 @@ RUN set -x && \
     # General packages for container debugging/maintenance: Kept packages (used in Docker at runtime)
     KEPT_PACKAGES+=(tcpdump) && \
     KEPT_PACKAGES+=(nano) && \
-    KEPT_PACKAGES+=(vim) && \ # added especially for Rui :)
+    KEPT_PACKAGES+=(vim) && \
 
 #
 # Install all these packages:
     apt-get update && \
-    apt-get install -y --no-install-recommends \
-        ${KEPT_PACKAGES[@]} \
-        ${TEMP_PACKAGES[@]} && \
+    apt-get install -y --no-install-recommends ${KEPT_PACKAGES[@]} ${TEMP_PACKAGES[@]} && \
 #
 # Install WireGuard
 WIREGUARD_RELEASE=$(curl -sX GET "https://api.github.com/repos/WireGuard/wireguard-tools/tags" | jq -r .[0].name) && \
