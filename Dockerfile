@@ -13,21 +13,14 @@ ENV DEST_PORT=11092
 
 
 RUN set -x && \
-# define packages needed for installation and general management of the container:
-    TEMP_PACKAGES=() && \
-    KEPT_PACKAGES=() && \
-
-    # SkySquitter requirements: Kept packages (used in Docker at runtime)
-    KEPT_PACKAGES+=(openjdk-17-jre-headless) && \
-
-    # General packages for container debugging/maintenance: Kept packages (used in Docker at runtime)
-    KEPT_PACKAGES+=(tcpdump) && \
-    KEPT_PACKAGES+=(nano) && \
-    KEPT_PACKAGES+=(vim) && \
 #
-# Install all these packages:
+# Install these packages:
     apt-get update && \
-    apt-get install -y --no-install-recommends ${KEPT_PACKAGES[@]} && \
+    apt-get install -y --no-install-recommends \
+        openjdk-17-jre-headless \
+        tcpdump \
+        nano \
+        vim && \
 
 #    echo ${TEMP_PACKAGES[@]} > /tmp/temp_packages
 #
@@ -50,8 +43,6 @@ RUN set -x && \
     echo "alias nano=\"nano -l\"" >> /root/.bashrc
 
 COPY rootfs/ /
-
-ENTRYPOINT [ "/init" ]
 
 # Add healthcheck
 # HEALTHCHECK --start-period=60s --interval=600s CMD /home/healthcheck/healthcheck.sh
