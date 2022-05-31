@@ -46,6 +46,15 @@ RUN set -x && \
 # Install all these packages:
     apt-get update && \
     apt-get install -y --no-install-recommends ${KEPT_PACKAGES[@]} ${TEMP_PACKAGES[@]} && \
+
+#
+# Figure out the environment. This will be needed later to install CoreDNS
+ARCH_NAME="$(uname -m)" && ARCH_NAME="${ARCH_NAME,,}" && \
+if [[ "${ARCH_NAME:0:6}" == "x86_64" ]]; then ARCH_NAME="amd64"; fi && \
+if [[ "${ARCH_NAME:0:3}" == "arm" ]]; then ARCH_NAME="arm"; fi && \
+if [[ "${ARCH_NAME:0:7}" == "aarch64" ]]; then ARCH_NAME="arm64"; fi && \
+OS_NAME="$(uname -s)" && OS_NAME="${OS_NAME,,}" && \
+
 #
 # Install WireGuard
 WIREGUARD_RELEASE=$(curl -sX GET "https://api.github.com/repos/WireGuard/wireguard-tools/tags" | jq -r .[0].name) && \
@@ -63,13 +72,8 @@ popd && \
 #
 # Install CoreDNS
 COREDNS_VERSION=$(curl -sX GET "https://api.github.com/repos/coredns/coredns/releases/latest" | awk '/tag_name/{print $4;exit}' FS='[""]' | awk '{print substr($1,2); }') && \
-ARCH_NAME="$(uname -m)" &&  ARCH_NAME="${ARCH_NAME,,}" && \
-if [[ "${ARCH_NAME:0:6}" == "x86_64" ]]; then ARCH_NAME="amd64"; fi && \
-if [[ "${ARCH_NAME:0:3}" == "arm" ]]; then ARCH_NAME="arm"; fi && \
-if [[ "${ARCH_NAME:0:7}" == "aarch64" ]]; then ARCH_NAME="arm64"; fi && \
-OS_NAME="$(uname -s)" && OS_NAME="${OS_NAME,,}" && \
 curl -o /tmp/coredns.tar.gz -L "https://github.com/coredns/coredns/releases/download/v${COREDNS_VERSION}/coredns_${COREDNS_VERSION}_${OS_NAME}_${ARCH_NAME}.tgz" && \
-tar xf /tmp/coredns.tar.gz -C	/app && \
+tar xf /tmp/coredns.tar.gz -C /app && \
 
 # Clean up
     apt-get remove -y ${TEMP_PACKAGES[@]} && \
