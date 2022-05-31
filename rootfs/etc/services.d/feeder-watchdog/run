@@ -16,7 +16,7 @@ trap 'echo -e "[ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAN
 APPNAME="$(hostname)/ssq-watchdog"
 echo "[$APPNAME][$(date)] Started as an s6 service"
 
-[[ -z "$WATCHDOG_MAX_FAILURES" ]] && WATCHDOG_MAX_FAILURES=10
+[[ -z "$WATCHDOG_MAX_FAILURES" ]] && WATCHDOG_MAX_FAILURES=10 || true
 FAILURE_COUNT=0
 
 # Give the system 60 seconds to stabilize before monitoring
