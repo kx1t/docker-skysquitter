@@ -19,19 +19,19 @@ then
   exit 1
 fi
 
-if [[ ! -f /config/wg0.conf ]]
+if [[ ! -f /etc/wireguard/wg0.conf ]]
 then
   echo "Emergency! \"wg0.conf\" cannot be found. Please contact your container maintainer!"
   exit 1
 fi
 
-if ! grep "PrivateKey =" /config/wg0.conf >/dev/null 2>&1
+if ! grep "PrivateKey =" /etc/wireguard/wg0.conf >/dev/null 2>&1
 then
   echo "Emergency! PrivateKey variable not found in \"wg0.conf\". Please contact your container maintainer!"
   exit 1
 fi
 
-if ! grep "PresharedKey =" /config/wg0.conf >/dev/null 2>&1
+if ! grep "PresharedKey =" /etc/wireguard/wg0.conf >/dev/null 2>&1
 then
   echo "Emergency! PresharedKey variable not found in \"wg0.conf\". Please contact your container maintainer!"
   exit 1
@@ -39,7 +39,7 @@ fi
 
 # Now we put in the keys in their location:
 
-sed -i 's|\(^\s*PrivateKey\s*=\s*\).*|\1'"$SKYSQUITTER_WG_PRIVKEY"'|' /config/wg0.conf
-sed -i 's|\(^\s*PresharedKey\s*=\s*\).*|\1'"$SKYSQUITTER_WG_PSK"'|' /config/wg0.conf
+sed -i 's|\(^\s*PrivateKey\s*=\s*\).*|\1'"$SKYSQUITTER_WG_PRIVKEY"'|' /etc/wireguard/wg0.conf
+sed -i 's|\(^\s*PresharedKey\s*=\s*\).*|\1'"$SKYSQUITTER_WG_PSK"'|' /etc/wireguard/wg0.conf
 
 # And done!
