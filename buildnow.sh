@@ -11,8 +11,8 @@ BASETARGET2=kx1t
 #IMAGE1="$BASETARGET1/$(pwd | sed -n 's|.*/docker-\(.*\)|\1|p'):$TAG"
 #IMAGE2="$BASETARGET2/$(pwd | sed -n 's|.*/docker-\(.*\)|\1|p'):$TAG"
 
-IMAGE1="$BASETARGET1/$(pwd):$TAG"
-IMAGE2="$BASETARGET2/$(pwd):$TAG"
+IMAGE1="$BASETARGET1/${PWD##*/}:$TAG"
+IMAGE2="$BASETARGET2/${PWD##*/}:$TAG"
 
 echo "press enter to start building $IMAGE1 and $IMAGE2 from $BRANCH"
 read
