@@ -63,7 +63,12 @@ popd && \
 #
 # Install CoreDNS
 COREDNS_VERSION=$(curl -sX GET "https://api.github.com/repos/coredns/coredns/releases/latest" | awk '/tag_name/{print $4;exit}' FS='[""]' | awk '{print substr($1,2); }') && \
-curl -o /tmp/coredns.tar.gz -L "https://github.com/coredns/coredns/releases/download/v${COREDNS_VERSION}/coredns_${COREDNS_VERSION}_linux_amd64.tgz" && \
+ARCH_NAME="$(uname -m)" &&  ARCH_NAME="${ARCH_NAME,,}" && \
+if [[ "${ARCH_NAME:0:6}" == "x86_64" ]]; then ARCH_NAME="amd64"; fi && \
+if [[ "${ARCH_NAME:0:3}" == "arm" ]]; then ARCH_NAME="arm"; fi && \
+if [[ "${ARCH_NAME:0:7}" == "aarch64" ]]; then ARCH_NAME="arm64"; fi && \
+OS_NAME="$(uname -s)" && OS_NAME="${OS_NAME,,}" && \
+curl -o /tmp/coredns.tar.gz -L "https://github.com/coredns/coredns/releases/download/v${COREDNS_VERSION}/coredns_${COREDNS_VERSION}_${OS_NAME}_${ARCH_NAME}.tgz" && \
 tar xf /tmp/coredns.tar.gz -C	/app && \
 
 # Clean up
