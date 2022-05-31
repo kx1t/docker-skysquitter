@@ -33,4 +33,3 @@ docker buildx build --compress --push $SECONDARG --platform $ARCHS --tag $IMAGE1
 [[ "$?" == "0" ]] && docker buildx build --compress --push $SECONDARG --platform $ARCHS --tag $IMAGE2 .
 
 echo "Total build time: $(( $(date +%s) - starttime )) seconds"
-ubuntu@dell-build:~/git/docker-skysquitter$
