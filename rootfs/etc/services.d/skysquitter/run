@@ -30,7 +30,7 @@ echo "[$APPNAME][$(date)] ${RECV_HOST}:${RECV_PORT} is available."
 echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
 echo "[$APPNAME][$(date)] Checking the SkySquitter Network..."
 # Now check if we can reach the SkySquitter server:
-while [[ $(timeout --preserve-status 10 ping -c5 ${DEST_HOST} 2>/dev/null ; echo $?) != "0" ]]
+while ! timeout --preserve-status 10 ping -c5 ${DEST_HOST} >/dev/null 2>&1
 do
   echo "[$APPNAME][$(date)] ${DEST_HOST} is not yet available. Trying again in a bit."
   sleep 5
