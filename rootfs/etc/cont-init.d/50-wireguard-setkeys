@@ -8,14 +8,21 @@
 if [[ "WG_PRIVKEY" == "" ]]
 then
   echo "Emergency!"
-  echo "SKYSQUITTER_WG_PRIVKEY must be set. Please update your configuration and try again!"
+  echo "WG_PRIVKEY must be set. Please update your configuration and try again!"
   exit 1
 fi
 
 if [[ "WG_PSK" == "" ]]
 then
   echo "Emergency!"
-  echo "SKYSQUITTER_WG_PSK must be set. Please update your configuration and try again!"
+  echo "WG_PSK must be set. Please update your configuration and try again!"
+  exit 1
+fi
+
+if [[ "MY_IP" == "" ]]
+then
+  echo "Emergency!"
+  echo "MY_IP must be set. Please update your configuration and try again!"
   exit 1
 fi
 
@@ -37,9 +44,16 @@ then
   exit 1
 fi
 
+if ! grep "Address =" /config/wg0.conf >/dev/null 2>&1
+then
+  echo "Emergency! Address variable not found in \"wg0.conf\". Please contact your container maintainer!"
+  exit 1
+fi
+
 # Now we put in the keys in their location:
 
 sed -i 's|\(^\s*PrivateKey\s*=\s*\).*|\1'"$WG_PRIVKEY"'|' /config/wg0.conf
 sed -i 's|\(^\s*PresharedKey\s*=\s*\).*|\1'"$WG_PSK"'|' /config/wg0.conf
+sed -i 's|\(^\s*Address\s*=\s*\).*|\1'"$MY_IP"'|' /config/wg0.conf
 
 # And done!

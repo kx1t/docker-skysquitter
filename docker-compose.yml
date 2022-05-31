@@ -19,6 +19,7 @@ services:
       - RECV_TIMEOUT=60     # (s) If no Mode S msg is received during given time, restart this
       - DEST_HOST=10.9.2.1  # !!! DO NOT CHANGE OR DELETE !!! (VPN host of backend)
       - DEST_PORT=11092     # !!! DO NOT CHANGE OR DELETE !!! (VPN port of backend)
+      - MY_IP=10.9.2.4
     volumes:
       - /opt/adsb/skysquitter/vpn:/config # // Provided VPN key file needs to be placed here as 'wg0.conf' <<<<
       - /lib/modules:/lib/modules
