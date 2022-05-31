@@ -1,0 +1,43 @@
+version: "2.1"
+services:
+
+  ssq:
+    image: kx1t/docker-skysquitter:dev-simple
+    container_name: ssq
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - SKYSQUITTER_WG_PRIVKEY="wNx5RvJmZnzvl0gwhNNRnpLCy8pwngK2zXkI8t0VO1s="
+      - SKYSQUITTER_WG_PSK="9jN5kC+O7zMs3F0ZxaWld1FjaTDVRdJDDDXZkJ1RQEY="
+    volumes:
+      - /opt/adsb/skysquitter/vpn:/config # // Provided VPN key file needs to be placed here as 'wg0.conf' <<<<
+      - /lib/modules:/lib/modules
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    network_mode: service:readsb # > PLEASE SET THE NAME OF THE RECEIVER CONTAINER <<<<<<<<
+    restart: always
+    depends_on:
+      - readsb
+
+  readsb:
+    image: ghcr.io/sdr-enthusiasts/docker-readsb-protobuf
+    tty: true
+    container_name: readsb
+    hostname: readsb
+    restart: always
+    ports:
+      - 30105:30105
+    environment:
+      - TZ=AMerica/New_York
+      - DISABLE_PERFORMANCE_GRAPHS=true
+      - DISABLE_WEBAPP=true
+      - READSB_NET_ENABLE=true
+      - READSB_NET_ONLY=true
+      - READSB_FORWARD_MLAT=true
+      - READSB_NET_CONNECTOR=192.168.0.35,30005,beast_in
+      - READSB_NET_BEAST_OUTPUT_PORT=30005
+    tmpfs:
+      - /run/readsb
