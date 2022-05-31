@@ -51,7 +51,7 @@ RUN set -x && \
 #
 # Now add a layer with the local builds
 RUN set -x && \
-    TEMP_PACKAGES=$(cat /tmp/packages) && \
+    TEMP_PACKAGES=$(cat /tmp/temp_packages) && \
     apt-get update && \
     apt-get install -y --no-install-recommends ${TEMP_PACKAGES[@]} && \
 #
