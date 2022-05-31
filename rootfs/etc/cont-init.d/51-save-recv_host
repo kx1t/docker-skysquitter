@@ -1,0 +1,15 @@
+#!/usr/bin/with-contenv bash
+
+# This module makes sure that the Private Key and Preshared Key are set before we
+# configure and start up WireGuard
+
+
+APPNAME="$(hostname)/51-save-recv_host"
+while [[ $(timeout --preserve-status 5 netcat -z -v ${RECV_HOST} ${RECV_PORT} 2>/dev/null ; echo $?) != "0" ]]
+do
+  echo "[$APPNAME][$(date)] ${RECV_HOST}:${RECV_PORT} is not yet available. Trying again in a bit."
+  sleep 5
+done
+
+ip_address="$(ping -c1 ${RECV_HOST} | head -1 | awk -F '[()]' '{print $2}')"
+echo ${ip_address} > /run/recv_host_ip

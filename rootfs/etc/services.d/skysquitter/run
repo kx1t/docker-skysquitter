@@ -14,20 +14,15 @@ SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd)/$(basename "$0")"
 trap 'echo -e "[ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAND"' ERR
 
 APPNAME="$(hostname)/ssq-feeder"
+
+if [[ -f /run/recv_host_ip ]]
+then
+  RECV_HOST="$(cat /run/recv_host_ip)"
+fi
+
 echo "[$APPNAME][$(date)] Started as an s6 service"
 
 # Initiate some environment variables:
-echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
-echo "[$APPNAME][$(date)] Checking your Beast Data Source..."
-# Now check SOURCE_HOST
-while [[ $(timeout --preserve-status 5 netcat -z -v ${RECV_HOST} ${RECV_PORT} 2>/dev/null ; echo $?) != "0" ]]
-do
-  echo "[$APPNAME][$(date)] ${RECV_HOST}:${RECV_PORT} is not yet available. Trying again in a bit."
-  sleep 5
-done
-
-echo "[$APPNAME][$(date)] ${RECV_HOST}:${RECV_PORT} is available."
-echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
 echo "[$APPNAME][$(date)] Checking the SkySquitter Network..."
 # Now check if we can reach the SkySquitter server:
 while ! timeout --preserve-status 10 ping -c5 ${DEST_HOST} >/dev/null 2>&1

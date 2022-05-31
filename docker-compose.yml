@@ -4,7 +4,7 @@ services:
   ssq:
     image: kx1t/docker-skysquitter:dev-simple
     container_name: ssq
-    hostname: ssq
+    hostname: ssqupdates
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
