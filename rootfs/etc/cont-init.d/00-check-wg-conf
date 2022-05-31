@@ -1,7 +1,13 @@
 #!/usr/bin/with-contenv bash
 
+mkdir -p /config
 if [[ ! -f /config/wg0.conf ]]
 then
-  echo "Emergency! \"wg0.conf\" cannot be found. Please contact your container maintainer!"
-  exit 1
+  if [[ -f /root/wg0.conf ]]
+  then
+    cp /root/wg0.conf /config
+  else
+    echo "Emergency -- wg0.conf not found!"
+    exit 1
+  fi
 fi
