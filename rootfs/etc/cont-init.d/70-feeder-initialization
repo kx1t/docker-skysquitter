@@ -12,5 +12,5 @@ if [[ "SKYSQUITTER_WG_PRIVKEY" == "" ]]
 then
   echo "Emergency!"
   echo "SKYSQUITTER_WG_PRIVKEY must be set. Please update your configuration and try again!"
-  exit 1
+  #exit 1
 fi
