@@ -51,8 +51,8 @@ RUN set -x && \
 WIREGUARD_RELEASE=$(curl -sX GET "https://api.github.com/repos/WireGuard/wireguard-tools/tags" | jq -r .[0].name) && \
 mkdir -p /app && \
 pushd /app && \
-  git clone --depth 1 https://git.zx2c4.com/wireguard-linux-compat && \
-  git clone --depth 1 https://git.zx2c4.com/wireguard-tools && \
+  git clone https://git.zx2c4.com/wireguard-linux-compat && \
+  git clone https://git.zx2c4.com/wireguard-tools && \
   pushd wireguard-tools && \
     git checkout "${WIREGUARD_RELEASE}" && \
     make -C src -j$(nproc) && \
