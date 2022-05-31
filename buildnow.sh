@@ -1,6 +1,5 @@
 #!/bin/bash
 #
-set -x
 
 [[ "$1" != "" ]] && BRANCH="$1" || BRANCH=main
 [[ "$BRANCH" == "main" ]] && TAG="latest" || TAG="$BRANCH"
