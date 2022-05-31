@@ -21,6 +21,6 @@ starttime="$(date +%s)"
 # rebuild the container
 git checkout $BRANCH || exit 2
 git pull -a
-[[ docker buildx build --compress --push $2 --platform $ARCHS --tag $IMAGE1 . ]]
+docker buildx build --compress --push $2 --platform $ARCHS --tag $IMAGE1 .
 [[ "$?" == "0" ]] && docker buildx build --compress --push $2 --platform $ARCHS --tag $IMAGE2 .
 echo "Total build time: $(( $(date +%s) - starttime )) seconds"
