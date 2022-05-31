@@ -20,20 +20,24 @@ echo "[$APPNAME][$(date)] Started as an s6 service"
 FAILURE_COUNT=0
 
 # Give the system 60 seconds to stabilize before monitoring
-echo "[$APPNAME][$(date)] Watchdog active!"
 while :
 do
-  if ! ping -c5 ${DEST_HOST} >/dev/null 2>&1
+  if [[ -f /run/lock/beast-feeder.up ]]
   then
-    (( FAILURE_COUNT++ ))
-    if (( FAILURE_COUNT > WATCHDOG_MAX_FAILURES ))
+    if ! ping -c5 ${DEST_HOST} >/dev/null 2>&1
     then
-      echo "[$APPNAME][$(date)] Cannot reach ${DEST_HOST} -- Maximum Failure Count of ${WATCHDOG_MAX_FAILURES} exceeded."
-      echo "[$APPNAME][$(date)] Shutting down the container to auto-restart..."
-      s6-svscanctl -t /var/run/s6/services
-    else
-      echo "[$APPNAME][$(date)] Cannot reach ${DEST_HOST} -- Failure ${FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES} allowed failures."
+      (( FAILURE_COUNT++ ))
+      if (( FAILURE_COUNT > WATCHDOG_MAX_FAILURES ))
+      then
+        echo "[$APPNAME][$(date)] Cannot reach ${DEST_HOST} -- Maximum Failure Count of ${WATCHDOG_MAX_FAILURES} exceeded."
+        echo "[$APPNAME][$(date)] Shutting down the container to auto-restart..."
+        s6-svscanctl -t /var/run/s6/services
+      else
+        echo "[$APPNAME][$(date)] Cannot reach ${DEST_HOST} -- Failure ${FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES} allowed failures."
+      fi
     fi
+  else
+    FAILURE_COUNT=0
   fi
   sleep 10
 done

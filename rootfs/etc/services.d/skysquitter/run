@@ -41,7 +41,9 @@ echo "[$APPNAME][$(date)] ------------------------------------------------------
 echo "[$APPNAME][$(date)] Starting the Data Connector..."
 
 # Now we can start parsing data from SOURCE and pass it to DEST:
+touch /run/lock/beast-feeder.up
 java -jar /opt/beast-feeder/beast-feeder.jar start_delay=${START_DELAY} logging=${LOGGING} recv_host=${RECV_HOST} recv_port=${RECV_PORT} recv_timeout=${RECV_TIMEOUT} dest_host=${DEST_HOST} dest_port=${DEST_PORT}
+rm -rf /run/lock/beast-feeder.up
 echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
 echo "[$APPNAME][$(date)] The Data Connector exited... we will restart in 10 seconds"
 sleep 10
