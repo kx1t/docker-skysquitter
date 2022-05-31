@@ -22,11 +22,11 @@ echo "[$APPNAME][$(date)] Checking your Beast Data Source..."
 # Now check SOURCE_HOST
 while [[ $(timeout --preserve-status 5 netcat -z -v ${RECV_HOST} ${RECV_PORT} 2>/dev/null ; echo $?) != "0" ]]
 do
-  echo "[$APPNAME][$(date)] ${RECV_HOST}:${BEASTPORT} is not yet available. Trying again in a bit."
+  echo "[$APPNAME][$(date)] ${RECV_HOST}:${RECV_PORT} is not yet available. Trying again in a bit."
   sleep 5
 done
 
-echo "[$APPNAME][$(date)] ${RECV_HOST}:${BEASTPORT} is available."
+echo "[$APPNAME][$(date)] ${RECV_HOST}:${RECV_PORT} is available."
 echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
 echo "[$APPNAME][$(date)] Checking the SkySquitter Network..."
 # Now check if we can reach the SkySquitter server:
@@ -36,7 +36,7 @@ do
   sleep 5
 done
 
-echo "[$APPNAME][$(date)] ${RECV_HOST}:${BEASTPORT} is available."
+echo "[$APPNAME][$(date)] ${DEST_HOST} is available."
 echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
 echo "[$APPNAME][$(date)] Starting the Data Connector..."
 

@@ -18,6 +18,7 @@ RUN set -x && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         openjdk-17-jre-headless \
+        netcat \
         tcpdump \
         nano \
         vim && \
