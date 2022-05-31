@@ -10,8 +10,8 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - WG_PRIVKEY=wNx5RvJmZnzvl0gwhNNRnpLCy8pwngK2zXkI8t0VO1s=
-      - WG_PSK=9jN5kC+O7zMs3F0ZxaWld1FjaTDVRdJDDDXZkJ1RQEY=
+      - WG_PRIVKEY=${SSQ_WG_PRIVKEY}
+      - WG_PSK=${SSQ_WG_PSK}
       - START_DELAY=0       # (ms) Give receiver app some time to startup TCP server before connecting
       - LOGGING=false       # Log file available in ./skysquitter/ folder if set to 'true'
       - RECV_HOST=localhost # Receiver service host address > PLEASE SET AS REQUIRED <<<<<<<<<<<<<<<<
