@@ -1,0 +1,39 @@
+#!/usr/bin/with-contenv bash
+#shellcheck shell=bash
+
+# -----------------------------------------------------------------------------------
+# Copyright 2022 kx1t - licensed under the terms and conditions
+# of GPLv3. The terms and conditions of this license are included with the Github
+# distribution of this package, and are also available here:
+# https://github.com/kx1t/docker-skysquitter/
+
+# redirect stderr to stdout so it's picked up in the docker logs
+exec 2>&1
+# all errors will show a line number and the command used to produce the error
+SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd)/$(basename "$0")"
+trap 'echo -e "[ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAND"' ERR
+
+APPNAME="$(hostname)/ssq-watchdog"
+echo "[$APPNAME][$(date)] Started as an s6 service"
+
+[[ -z "$WATCHDOG_MAX_FAILURES" ]] && WATCHDOG_MAX_FAILURES=10
+FAILURE_COUNT=0
+
+# Give the system 60 seconds to stabilize before monitoring
+echo "[$APPNAME][$(date)] Watchdog active!"
+while :
+do
+  if ! ping -c5 ${DEST_HOST} >/dev/null 2>&1
+  then
+    (( FAILURE_COUNT++ ))
+    if (( FAILURE_COUNT > WATCHDOG_MAX_FAILURES ))
+    then
+      echo "[$APPNAME][$(date)] Cannot reach ${DEST_HOST} -- Maximum Failure Count of ${WATCHDOG_MAX_FAILURES} exceeded."
+      echo "[$APPNAME][$(date)] Shutting down the container to auto-restart..."
+      s6-svscanctl -t /var/run/s6/services
+    else
+      echo "[$APPNAME][$(date)] Cannot reach ${DEST_HOST} -- Failure ${FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES} allowed failures."
+    fi
+  fi
+  sleep 10
+done
