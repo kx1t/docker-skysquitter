@@ -1,6 +1,6 @@
 
 
-FROM ghcr.io/sdr-enthusiasts/docker-baseimage:python
+FROM linuxserver/wireguard:latest
 
 # Preset a number of ENV variables as fall back when not defined at runtime:
 ENV START_DELAY=5000
@@ -16,20 +16,6 @@ RUN set -x && \
 # define packages needed for installation and general management of the container:
     TEMP_PACKAGES=() && \
     KEPT_PACKAGES=() && \
-
-    # WireGuard requirements: Kept packages (used in Docker at runtime)
-    KEPT_PACKAGES+=(dkms) && \
-    KEPT_PACKAGES+=(gnupg) && \
-    KEPT_PACKAGES+=(ifupdown) && \
-    KEPT_PACKAGES+=(iputils-ping) && \
-    KEPT_PACKAGES+=(jq) && \
-    KEPT_PACKAGES+=(libc6) && \
-    KEPT_PACKAGES+=(libelf-dev) && \
-    KEPT_PACKAGES+=(openresolv) && \
-    KEPT_PACKAGES+=(perl) && \
-    KEPT_PACKAGES+=(qrencode) && \
-    KEPT_PACKAGES+=(wireguard) && \
-    KEPT_PACKAGES+=(wireguard-tools) && \
 
     # SkySquitter requirements: Kept packages (used in Docker at runtime)
     KEPT_PACKAGES+=(openjdk-17-jre-headless) && \
