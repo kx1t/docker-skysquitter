@@ -1,0 +1,5 @@
+if [[ ! -f /config/wg0.conf ]]
+then
+  echo "Emergency! \"wg0.conf\" cannot be found. Please contact your container maintainer!"
+  exit 1
+fi
