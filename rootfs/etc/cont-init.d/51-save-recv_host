@@ -11,5 +11,5 @@ do
   sleep 5
 done
 
-ip_address="$(ping -c1 ${RECV_HOST} | head -1 | awk -F '[()]' '{print $2}')"
-echo ${ip_address} > /run/recv_host_ip
+#ip_address="$(ping -c1 ${RECV_HOST} | head -1 | awk -F '[()]' '{print $2}')"
+#echo ${ip_address} > /run/recv_host_ip
