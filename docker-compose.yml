@@ -2,7 +2,7 @@ version: "2.1"
 services:
 
   ssq:
-    image: kx1t/docker-skysquitter:dev-simple
+    image: kx1t/docker-skysquitter:dev-baseimage
     container_name: ssq
     hostname: ssqupdates
     cap_add:
