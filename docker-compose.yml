@@ -3,7 +3,7 @@ version: "3.8"
 services:
 
   skysquitter:
-    image: ghcr.io/kx1t/docker-skysquitter:dev-baseimage
+    image: ghcr.io/kx1t/docker-skysquitter:latest
     container_name: ssq
     hostname: ssq
     cap_add:
