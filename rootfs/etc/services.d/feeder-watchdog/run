@@ -35,6 +35,8 @@ do
       else
         echo "[$APPNAME][$(date)] Cannot reach ${DEST_HOST} -- Failure ${PING_FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES} allowed failures."
       fi
+    else
+      PING_FAILURE_COUNT=0
     fi
 
     # check if data is flowing
@@ -49,10 +51,13 @@ do
       else
         echo "[$APPNAME][$(date)] No data is flowing to UDP port ${DEST_PORT} -- Failure count ${TCPD_FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES} allowed failures."
       fi
+    else
+      TCPD_FAILURE_COUNT=0
     fi
       
   else
-    FAILURE_COUNT=0
+    PING_FAILURE_COUNT=0
+    TCPD_FAILURE_COUNT=0
   fi
   sleep 10
 done
