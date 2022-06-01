@@ -5,7 +5,7 @@
 [[ "$BRANCH" == "main" ]] && TAG="latest" || TAG="$BRANCH"
 [[ "$ARCHS" == "" ]] && ARCHS="linux/armhf,linux/arm64,linux/amd64"
 
-BASETARGET1=ghcr.io/sdr-enthusiasts
+BASETARGET1=ghcr.io/kx1t
 BASETARGET2=kx1t
 
 SECONDARG="$2"
