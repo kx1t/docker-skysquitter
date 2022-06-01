@@ -32,12 +32,12 @@ Note -- these variables generally do NOT need changing unless you're told otherw
 
 | Variable       | Description                                                                         | Default value if omitted |
 |----------------|-------------------------------------------------------------------------------------|--------------------------|
-| `START_DELAY`  | Delay for Java application to start reading ADS-B data                              | 0                        |
-| `LOGGING`      | Write logs to file (Logs are always written to the Docker Logs)                     | false                    |
-| `RECV_PORT`    | TCP port on `RECV_HOST` where Beast-format data is available                        | 30005                    |
-| `RECV_TIMEOUT` | Duration of non-reception of ADS-B data before Java application will restart (secs) | 10                       |
-| `DEST_HOST`    | Hostname or IP address of SkySquitter Server                                        | 10.9.2.1                 |
-| `DEST_PORT`    | UDP port on SkySquitter Server to send data to                                      | 11092                    |
+| `START_DELAY`  | Delay for Java application to start reading ADS-B data                              | `0`                      |
+| `LOGGING`      | Write logs to file (Logs are always written to the Docker Logs)                     | `false`                  |
+| `RECV_PORT`    | TCP port on `RECV_HOST` where Beast-format data is available                        | `30005`                  |
+| `RECV_TIMEOUT` | Duration of non-reception of ADS-B data before Java application will restart (secs) | `10`                     |
+| `DEST_HOST`    | Hostname or IP address of SkySquitter Server                                        | `10.9.2.1`               |
+| `DEST_PORT`    | UDP port on SkySquitter Server to send data to                                      | `11092`                  |
 
 # OWNERSHIP AND LICENSE
 SkySquitter is owned by, and copyright by SkySquitter. All rights reserved.
