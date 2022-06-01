@@ -1,0 +1,59 @@
+#!/usr/bin/with-contenv bash
+
+# This module makes sure that the Private Key and Preshared Key are set before we
+# configure and start up WireGuard
+
+# First we do a few sanity checks:
+
+if [[ "WG_PRIVKEY" == "" ]]
+then
+  echo "Emergency!"
+  echo "WG_PRIVKEY must be set. Please update your configuration and try again!"
+  exit 1
+fi
+
+if [[ "WG_PSK" == "" ]]
+then
+  echo "Emergency!"
+  echo "WG_PSK must be set. Please update your configuration and try again!"
+  exit 1
+fi
+
+if [[ "MY_IP" == "" ]]
+then
+  echo "Emergency!"
+  echo "MY_IP must be set. Please update your configuration and try again!"
+  exit 1
+fi
+
+if [[ ! -f /config/wg0.conf ]]
+then
+  echo "Emergency! \"wg0.conf\" cannot be found. Please contact your container maintainer!"
+  exit 1
+fi
+
+if ! grep "PrivateKey =" /config/wg0.conf >/dev/null 2>&1
+then
+  echo "Emergency! PrivateKey variable not found in \"wg0.conf\". Please contact your container maintainer!"
+  exit 1
+fi
+
+if ! grep "PresharedKey =" /config/wg0.conf >/dev/null 2>&1
+then
+  echo "Emergency! PresharedKey variable not found in \"wg0.conf\". Please contact your container maintainer!"
+  exit 1
+fi
+
+if ! grep "Address =" /config/wg0.conf >/dev/null 2>&1
+then
+  echo "Emergency! Address variable not found in \"wg0.conf\". Please contact your container maintainer!"
+  exit 1
+fi
+
+# Now we put in the keys in their location:
+
+sed -i 's|\(^\s*PrivateKey\s*=\s*\).*|\1'"$WG_PRIVKEY"'|' /config/wg0.conf
+sed -i 's|\(^\s*PresharedKey\s*=\s*\).*|\1'"$WG_PSK"'|' /config/wg0.conf
+sed -i 's|\(^\s*Address\s*=\s*\).*|\1'"$MY_IP"'|' /config/wg0.conf
+
+# And done!

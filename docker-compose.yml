@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+
+  skysquitter:
+    image: ghcr.io/kx1t/docker-skysquitter:dev-baseimage
+    container_name: ssq
+    hostname: ssq
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - WG_PRIVKEY=${SSQ_WG_PRIVKEY}
+      - WG_PSK=${SSQ_WG_PSK}
+      - RECV_HOST=readsb
+      - MY_IP=10.9.2.4
+    volumes:
+      - /lib/modules:/lib/modules
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    restart: always
+    depends_on:
+      - readsb
+
+  readsb:
+    image: ghcr.io/sdr-enthusiasts/docker-readsb-protobuf
+    tty: true
+    container_name: readsb
+    hostname: readsb
+    restart: always
+    ports:
+      - 30105:30105
+    environment:
+      - TZ=America/New_York
+      - DISABLE_PERFORMANCE_GRAPHS=true
+      - DISABLE_WEBAPP=true
+      - READSB_NET_ENABLE=true
+      - READSB_NET_ONLY=true
+      - READSB_FORWARD_MLAT=true
+      - READSB_NET_CONNECTOR=10.244.10.168,30005,beast_in
+      - READSB_NET_BEAST_OUTPUT_PORT=30005
+    tmpfs:
+      - /run/readsb

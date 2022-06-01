@@ -1,0 +1,81 @@
+#!/usr/bin/with-contenv bash
+#shellcheck shell=bash
+
+# -----------------------------------------------------------------------------------
+# Copyright 2022 kx1t - licensed under the terms and conditions
+# of GPLv3. The terms and conditions of this license are included with the Github
+# distribution of this package, and are also available here:
+# https://github.com/kx1t/docker-skysquitter/
+
+# redirect stderr to stdout so it's picked up in the docker logs
+exec 2>&1
+# all errors will show a line number and the command used to produce the error
+SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd)/$(basename "$0")"
+trap 'echo -e "[ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAND"' ERR
+
+APPNAME="$(hostname)/ssq-watchdog"
+echo "[$APPNAME][$(date)] Started as an s6 service"
+
+fix_wg ()
+{ # First bring down the VPN:
+  wg-quick down /config/wg0.conf
+  sleep 5
+  # Bring VPN back up:
+  wg-quick up /config/wg0.conf
+  sleep 10
+  # Check if we were successful
+  ping -c5 $1 >/dev/null 2>&1 && return 0 || return 1
+}
+
+[[ -z "$WATCHDOG_MAX_FAILURES" ]] && WATCHDOG_MAX_FAILURES=10 || true
+PING_FAILURE_COUNT=0
+TCPD_FAILURE_COUNT=0
+while :
+do
+  if [[ -f /run/lock/beast-feeder.up ]]
+  then
+    # check if pings work:
+    if ! ping -c5 ${DEST_HOST} >/dev/null 2>&1
+    then
+      (( PING_FAILURE_COUNT++ )) || true
+      if (( PING_FAILURE_COUNT > WATCHDOG_MAX_FAILURES ))
+      then
+        echo "[$APPNAME][$(date)] Cannot reach ${DEST_HOST} -- Maximum Failure Count of ${WATCHDOG_MAX_FAILURES} exceeded."
+        echo "[$APPNAME][$(date)] Trying to fix the VPN connection..."
+        if ! fix_wg ${DEST_HOST}
+        then
+          echo "[$APPNAME][$(date)] VPN fix attempt failed. Shutting down the container to auto-restart..."
+          s6-svscanctl -t /var/run/s6/services
+        fi
+      else
+        echo "[$APPNAME][$(date)] Cannot reach ${DEST_HOST} -- Failure ${PING_FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES} allowed failures."
+      fi
+    else
+      (( PING_FAILURE_COUNT > 0 )) && echo "[$APPNAME][$(date)] ${DEST_HOST} can be reached again." || true
+      PING_FAILURE_COUNT=0
+    fi
+
+    # check if data is flowing
+    if [[ "$(grep captured <<< $(timeout --preserve-status 3 tcpdump -i wg0 udp port ${DEST_PORT} 2>/dev/stdout 1>/dev/null) | awk '{print $1}')" == "0" ]]
+    then
+      (( TCPD_FAILURE_COUNT++ )) || true
+      if (( TCPD_FAILURE_COUNT > WATCHDOG_MAX_FAILURES ))
+      then
+        echo "[$APPNAME][$(date)] No data is flowing to UDP port ${DEST_PORT}-- Maximum Failure Count of ${WATCHDOG_MAX_FAILURES} exceeded."
+        echo "[$APPNAME][$(date)] Shutting down the container to auto-restart..."
+        s6-svscanctl -t /var/run/s6/services
+      else
+        echo "[$APPNAME][$(date)] No data is flowing to UDP port ${DEST_PORT} -- Failure count ${TCPD_FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES} allowed failures."
+      fi
+    else
+      (( TCPD_FAILURE_COUNT > 0 )) && echo "[$APPNAME][$(date)] Data is flowing again to UDP port ${DEST_PORT}." || true
+
+      TCPD_FAILURE_COUNT=0
+    fi
+
+  else
+    PING_FAILURE_COUNT=0
+    TCPD_FAILURE_COUNT=0
+  fi
+  sleep 10
+done

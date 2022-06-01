@@ -1,26 +1,35 @@
 #!/bin/bash
 #
-set -x
 
 [[ "$1" != "" ]] && BRANCH="$1" || BRANCH=main
 [[ "$BRANCH" == "main" ]] && TAG="latest" || TAG="$BRANCH"
 [[ "$ARCHS" == "" ]] && ARCHS="linux/armhf,linux/arm64,linux/amd64"
 
+BASETARGET1=ghcr.io/sdr-enthusiasts
+BASETARGET2=kx1t
+
+SECONDARG="$2"
+
+#IMAGE1="$BASETARGET1/$(pwd | sed -n 's|.*/docker-\(.*\)|\1|p'):$TAG"
+#IMAGE2="$BASETARGET2/$(pwd | sed -n 's|.*/docker-\(.*\)|\1|p'):$TAG"
+
+IMAGE1="$BASETARGET1/${PWD##*/}:$TAG"
+IMAGE2="$BASETARGET2/${PWD##*/}:$TAG"
+
+echo "press enter to start building $IMAGE1 and $IMAGE2 from $BRANCH"
+read
+
+starttime="$(date +%s)"
 # rebuild the container
-pushd ~/git/docker-skysquitter
-git checkout $BRANCH || exit 2
+if [[ "${SECONDARG,,}" != "nopull" ]]
+then
+	git checkout $BRANCH || exit 2
+	git pull -a
+else
+	SECONDARG=""
+fi
 
-# make the build certs root_certs folder:
-# Note that this is normally done as part of the github actions - we don't have those here, so we need to do it ourselves before building:
-#ls -la /etc/ssl/certs/
-mkdir -p ./root_certs/etc/ssl/certs
-mkdir -p ./root_certs/usr/share/ca-certificates/mozilla
+docker buildx build --compress --push $SECONDARG --platform $ARCHS --tag $IMAGE1 .
+[[ "$?" == "0" ]] && docker buildx build --compress --push $SECONDARG --platform $ARCHS --tag $IMAGE2 .
 
-cp -P /etc/ssl/certs/*.crt ./root_certs/etc/ssl/certs
-cp -P /etc/ssl/certs/*.pem ./root_certs/etc/ssl/certs
-cp -P /usr/share/ca-certificates/mozilla/*.crt ./root_certs/usr/share/ca-certificates/mozilla
-
-git pull
-docker buildx build --progress=plain --compress --push $2 --platform $ARCHS --tag kx1t/skysquitter:$TAG .
-rm -rf ./root_certs
-popd
+echo "Total build time: $(( $(date +%s) - starttime )) seconds"

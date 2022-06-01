@@ -13,67 +13,33 @@ exec 2>&1
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd)/$(basename "$0")"
 trap 'echo -e "[ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAND"' ERR
 
-APPNAME="$(hostname)/skysquitter"
-echo "[$APPNAME][$(date)] Started as an s6 service"
+APPNAME="$(hostname)/ssq-feeder"
 
-# Initiate some environment variables:
-[[ "$SKYSQUITTER_LOOPTIME" == "" ]] && LOOPTIME="10s" || LOOPTIME="$SKYSQUITTER_LOOPTIME"
-[[ "$SKYSQUITTER_SOURCE" == "" ]] && $SKYSQUITTER_SOURCE="readsb:30005"
-
-# Do a pre-check to ensure that $SKYSQUITTER_DEST has been defined:
-if [[ "${SKYSQUITTER_DEST%%:*}" == "" ]] || [[ "${SKYSQUITTER_DEST##*:}" == "" ]]
+if [[ -f /run/recv_host_ip ]]
 then
-  echo "|--------------------------------------|"
-  echo "|               STOP !!!!              |"
-  echo "|                                      |"
-  echo "| You must define SKYSQUITTER_DEST     |"
-  echo "| in your docker-compose.yml !!!       |"
-  echo "|                                      |"
-  echo "|--------------------------------------|"
-  echo "  Example:"
-  echo "  - SKYSQUITTER_DEST=airdata.skysquitter.com:portnumber"
-  echo "  where the portnumber is obtained from SkySquitter"
-  echo
-  echo "Please add the SKYSQUITTER_DEST parameter to your docker-compose.yml file and restart the container."
-  echo "[$APPNAME][$(date)] halted"
-  sleep infinity
+  RECV_HOST="$(cat /run/recv_host_ip)"
 fi
 
-# Now check SOURCE_HOST
-while [[ $(timeout --preserve-status 5 netcat -z -v ${SKYSQUITTER_SOURCE%%:*} ${SKYSQUITTER_SOURCE##*:} 2>/dev/null ; echo $?) != "0" ]]
-do
-  echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
-  echo "[$APPNAME][$(date)] While testing the SKYSQUITTER_SOURCE parameter, we ran into trouble:"
-  echo "[$APPNAME][$(date)] We cannot reach ${SKYSQUITTER_SOURCE%%:*} on port ${SKYSQUITTER_SOURCE##*:}."
-	echo "[$APPNAME][$(date)] We will retry every 5 seconds. If this error keeps on repeating, please make sure that"
-	echo "[$APPNAME][$(date)] readsb/dump1090[-fa]/tar1090 is running and producing RAW (AVR) data on port ${SOURCE_HOST##*:}!"
-  echo "[$APPNAME][$(date)]"
-  echo "[$APPNAME][$(date)] If you see this only a few times at startup, and then not again, then you can"
-  echo "[$APPNAME][$(date)] ignore this as it is probably related to your SOURCE_HOST launching."
-  echo "[$APPNAME][$(date)]"
-  echo "[$APPNAME][$(date)] Another hint: SKYSQUITTER_SOURCE in docker-compose.yml cannot point at 127.0.0.1. You MUST use"
-  echo "[$APPNAME][$(date)] a name or a real IP address, for example \"readsb:30005\" or \"192.168.0.99:30005\"."
-  echo "[$APPNAME][$(date)] If you are using this in a \"normal\" ASD-B container environment, then one of the following should probably work:"
-  echo "[$APPNAME][$(date)] - SKYSQUITTER_SOURCE=readsb:30005           # ... or:"
-  echo "[$APPNAME][$(date)] - SKYSQUITTER_SOURCE=tar1090:30005"
-  sleep 5
-done
-
-echo "[$APPNAME][$(date)] Source server can be reached at $SKYSQUITTER_SOURCE"
-
+echo "[$APPNAME][$(date)] Started as an s6 service"
+sleep 10 # to make she the VPN is up and stable and stopped spamming the logs
+# Initiate some environment variables:
+echo "[$APPNAME][$(date)] Checking the SkySquitter Network..."
 # Now check if we can reach the SkySquitter server:
-while [[ $(timeout --preserve-status 10 netcat -u -z -v ${SKYSQUITTER_DEST%%:*} ${SKYSQUITTER_DEST##*:} 2>/dev/null ; echo $?) != "0" ]]
+while ! timeout --preserve-status 10 ping -c5 ${DEST_HOST} >/dev/null 2>&1
 do
-  echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
-  echo "[$APPNAME][$(date)] While testing the SKYSQUITTER_DEST parameter, we ran into trouble:"
-  echo "[$APPNAME][$(date)] We cannot reach ${SKYSQUITTER_DEST%%:*} on port ${SKYSQUITTER_DEST##*:}."
-	echo "[$APPNAME][$(date)] We will retry in a few seconds. If this error keeps on repeating, please make sure that"
-	echo "[$APPNAME][$(date)] your internet connection is still working."
+  echo "[$APPNAME][$(date)] ${DEST_HOST} is not yet available. Trying again in a bit."
   sleep 5
 done
 
-echo "[$APPNAME][$(date)] Destination server can be reached at $SKYSQUITTER_DEST"
-echo "[$APPNAME][$(date)] Starting socat data relay between tcp:$SKYSQUITTER_SOURCE and udp:$SKYSQUITTER_DEST"
+echo "[$APPNAME][$(date)] ${DEST_HOST} is available."
+echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
+echo "[$APPNAME][$(date)] Starting the Data Connector..."
 
 # Now we can start parsing data from SOURCE and pass it to DEST:
-socat -d -u tcp:${SKYSQUITTER_SOURCE} udp:${SKYSQUITTER_DEST}
+touch /run/lock/beast-feeder.up
+java -jar /opt/beast-feeder/beast-feeder.jar start_delay=${START_DELAY} logging=${LOGGING} recv_host=${RECV_HOST} recv_port=${RECV_PORT} recv_timeout=${RECV_TIMEOUT} dest_host=${DEST_HOST} dest_port=${DEST_PORT} \
+     | stdbuf -o0 sed --unbuffered '/^$/d' | stdbuf -o0 awk '{print "['${APPNAME}'][" strftime("%a %b %e %T %Z %Y", systime()) "] " $0}'
+rm -rf /run/lock/beast-feeder.up
+echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
+echo "[$APPNAME][$(date)] The Data Connector exited... we will restart in 10 seconds"
+sleep 10

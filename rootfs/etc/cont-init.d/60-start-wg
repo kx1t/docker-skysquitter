@@ -1,0 +1,16 @@
+#!/usr/bin/with-contenv bash
+
+# This module makes sure that the Private Key and Preshared Key are set before we
+# configure and start up WireGuard
+
+
+APPNAME="$(hostname)/60-start-wg"
+if wg-quick up /config/wg0.conf 2>&1 | stdbuf -o0 sed --unbuffered '/^$/d' | stdbuf -o0 awk '{print "['$APPNAME'][" strftime("%a %b %e %T %Z %Y", systime()) "] " $0}'
+then
+  echo "[$APPNAME][$(date)] WireGuard VPN brought up successfully"
+else
+  echo "[$APPNAME][$(date)] WireGuard VPN failed!"
+  echo "[$APPNAME][$(date)] Please check the configuration and restart the container."
+  echo "[$APPNAME][$(date)] Container halted."
+  sleep infinity
+fi

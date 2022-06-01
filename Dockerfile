@@ -1,69 +1,54 @@
 
 
-FROM debian:buster-20211220-slim
+#FROM linuxserver/wireguard:latest
+FROM ghcr.io/sdr-enthusiasts/docker-baseimage:python
 
-ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2
-
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-# Copy needs to be here to prevent github actions from failing.
-# SSL Certs are pre-loaded into the rootfs via a job in github action:
-# See: "Copy CA Certificates from GitHub Runner to Image rootfs" in deploy.yml
-COPY root_certs/ /
+# Preset a number of ENV variables as fall back when not defined at runtime:
+ENV START_DELAY=0
+ENV LOGGING=false
+ENV RECV_HOST=
+ENV RECV_PORT=30005
+ENV RECV_TIMEOUT=10
+ENV DEST_HOST=10.9.2.1
+ENV DEST_PORT=11092
 
 RUN set -x && \
-# define packages needed for installation and general management of the container:
-    TEMP_PACKAGES=() && \
-    KEPT_PACKAGES=() && \
-    TEMP_PACKAGES+=(gnupg2) && \
-    TEMP_PACKAGES+=(file) && \
-    KEPT_PACKAGES+=(curl) && \
-    KEPT_PACKAGES+=(ca-certificates) && \
-    KEPT_PACKAGES+=(procps) && \
-    KEPT_PACKAGES+=(nano) && \
-    KEPT_PACKAGES+=(socat) && \
-    KEPT_PACKAGES+=(netcat) && \
-    KEPT_PACKAGES+=(psmisc) && \
-    KEPT_PACKAGES+=(net-tools) && \
-    TEMP_PACKAGES+=(git) && \
 #
-# Install all these packages:
+# Install these packages:
     apt-get update && \
-    apt-get install --force-yes -y \
-        ${KEPT_PACKAGES[@]} \
-        ${TEMP_PACKAGES[@]} && \
+    apt-get install -y --no-install-recommends \
+        openjdk-17-jre-headless \
+        netcat \
+        tcpdump \
+        nano \
+        vim \
+        iputils-ping \
+        openjdk-17-jre-headless \
+        iproute2 \
+        openresolv \
+        wireguard && \
 
-#
-# Install @Mikenye's HealthCheck framework (https://github.com/mikenye/docker-healthchecks-framework)
-    mkdir -p /opt && \
-    git clone \
-          --depth=1 \
-          https://github.com/mikenye/docker-healthchecks-framework.git \
-          /opt/healthchecks-framework \
-          && \
-    rm -rf \
-      /opt/healthchecks-framework/.git* \
-      /opt/healthchecks-framework/*.md \
-      /opt/healthchecks-framework/tests \
-      && \
+#    echo ${TEMP_PACKAGES[@]} > /tmp/temp_packages
 #
 #
-# install S6 Overlay
-    curl -s https://raw.githubusercontent.com/mikenye/deploy-s6-overlay/master/deploy-s6-overlay.sh | sh && \
+# Now add a layer with the local builds
+# Note -- there are no local build requirements so this layer isnt necessary
+#RUN set -x && \
+#    TEMP_PACKAGES=$(cat /tmp/temp_packages) && \
+#    apt-get update && \
+#    apt-get install -y --no-install-recommends ${TEMP_PACKAGES[@]} && \
 #
 # Clean up
-    apt-get remove -y ${TEMP_PACKAGES[@]} && \
-    apt-get autoremove -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -y && \
-    apt-get clean -y && \
-    rm -rf /src /tmp/* /var/lib/apt/lists/* && \
+#    apt-get remove -y ${TEMP_PACKAGES[@]} && \
+#    apt-get autoremove -y && \
+#    apt-get clean -y && \
+#    rm -rf /src /tmp/* /var/lib/apt/lists/* && \
 #
 # Do some stuff for kx1t's convenience:
     echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
     echo "alias nano=\"nano -l\"" >> /root/.bashrc
 
 COPY rootfs/ /
-
-ENTRYPOINT [ "/init" ]
 
 # Add healthcheck
 # HEALTHCHECK --start-period=60s --interval=600s CMD /home/healthcheck/healthcheck.sh

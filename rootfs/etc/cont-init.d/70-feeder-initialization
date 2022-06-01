@@ -1,0 +1,16 @@
+#!/usr/bin/with-contenv bash
+
+# This module makes sure that the Private Key and Preshared Key are set before we
+# configure and start up WireGuard
+
+# First we do a few sanity checks:
+
+[[ ! -z "$SQ_START_DELAY" ]] && SQ_START_DELAY=5000 || true
+
+
+if [[ "SKYSQUITTER_WG_PRIVKEY" == "" ]]
+then
+  echo "Emergency!"
+  echo "SKYSQUITTER_WG_PRIVKEY must be set. Please update your configuration and try again!"
+  #exit 1
+fi
