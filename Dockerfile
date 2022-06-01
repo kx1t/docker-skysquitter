@@ -22,7 +22,12 @@ RUN set -x && \
         netcat \
         tcpdump \
         nano \
-        vim && \
+        vim \
+        iputils-ping \
+        openjdk-17-jre-headless \
+        iproute2 \
+        openresolv \
+        wireguard && \
 
 #    echo ${TEMP_PACKAGES[@]} > /tmp/temp_packages
 #

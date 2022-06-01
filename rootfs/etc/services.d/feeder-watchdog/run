@@ -16,6 +16,17 @@ trap 'echo -e "[ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAN
 APPNAME="$(hostname)/ssq-watchdog"
 echo "[$APPNAME][$(date)] Started as an s6 service"
 
+fix_wg ()
+{ # First bring down the VPN:
+  wg-quick down /config/wg0.conf
+  sleep 5
+  # Bring VPN back up:
+  wg-quick up /config/wg0.conf
+  sleep 10
+  # Check if we were successful
+  ping -c5 $1 >/dev/null 2>&1 && return 0 || return 1
+}
+
 [[ -z "$WATCHDOG_MAX_FAILURES" ]] && WATCHDOG_MAX_FAILURES=10 || true
 PING_FAILURE_COUNT=0
 TCPD_FAILURE_COUNT=0
@@ -30,8 +41,12 @@ do
       if (( PING_FAILURE_COUNT > WATCHDOG_MAX_FAILURES ))
       then
         echo "[$APPNAME][$(date)] Cannot reach ${DEST_HOST} -- Maximum Failure Count of ${WATCHDOG_MAX_FAILURES} exceeded."
-        echo "[$APPNAME][$(date)] Shutting down the container to auto-restart..."
-        s6-svscanctl -t /var/run/s6/services
+        echo "[$APPNAME][$(date)] Trying to fix the VPN connection..."
+        if ! fix_wg ${DEST_HOST}
+        then
+          echo "[$APPNAME][$(date)] VPN fix attempt failed. Shutting down the container to auto-restart..."
+          s6-svscanctl -t /var/run/s6/services
+        fi
       else
         echo "[$APPNAME][$(date)] Cannot reach ${DEST_HOST} -- Failure ${PING_FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES} allowed failures."
       fi
@@ -57,7 +72,7 @@ do
 
       TCPD_FAILURE_COUNT=0
     fi
-      
+
   else
     PING_FAILURE_COUNT=0
     TCPD_FAILURE_COUNT=0
