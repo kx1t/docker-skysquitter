@@ -15,6 +15,7 @@ services:
       - RECV_HOST=readsb
       - MY_IP=10.9.2.4
     volumes:
+      - /opt/adsb/skysquitter:/config
       - /lib/modules:/lib/modules
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1

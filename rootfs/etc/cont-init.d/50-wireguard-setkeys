@@ -3,7 +3,18 @@
 # This module makes sure that the Private Key and Preshared Key are set before we
 # configure and start up WireGuard
 
+APPNAME="$(hostname)/50-wireguard-setkeys"
+
 # First we do a few sanity checks:
+
+# check if the template has been replaced:
+read -r teststring < /config/wg0.conf
+if [[ "${teststring:0:14}" == "# wg0 template" ]]
+then
+  # dont use the template as it has been replaced
+  echo "[$APPNAME][$(date)] Using custom uploaded wg0.conf file - ignoring environment variables"
+  exit 0
+fi
 
 if [[ "WG_PRIVKEY" == "" ]]
 then
