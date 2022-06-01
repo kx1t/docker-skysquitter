@@ -1,32 +1,23 @@
-version: "2.1"
+version: "3.8"
+
 services:
 
-  ssq:
-    image: kx1t/docker-skysquitter:dev-baseimage
+  skysquitter:
+    image: ghcr.io/kx1t/docker-skysquitter:dev-baseimage
     container_name: ssq
-    hostname: ssqupdates
+    hostname: ssq
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
     environment:
-      - PUID=1000
-      - PGID=1000
       - WG_PRIVKEY=${SSQ_WG_PRIVKEY}
       - WG_PSK=${SSQ_WG_PSK}
-      - START_DELAY=0       # (ms) Give receiver app some time to startup TCP server before connecting
-      - LOGGING=false       # Log file available in ./skysquitter/ folder if set to 'true'
-      - RECV_HOST=readsb    # Receiver service host address > PLEASE SET AS REQUIRED <<<<<<<<<<<<<<<<
-      - RECV_PORT=30005     # Receiver service port number  > PLEASE SET AS REQUIRED <<<<<<<<<<<<<<<<
-      - RECV_TIMEOUT=10     # (s) If no Mode S msg is received during given time, restart this
-      - DEST_HOST=10.9.2.1  # !!! DO NOT CHANGE OR DELETE !!! (VPN host of backend)
-      - DEST_PORT=11092     # !!! DO NOT CHANGE OR DELETE !!! (VPN port of backend)
+      - RECV_HOST=readsb
       - MY_IP=10.9.2.4
     volumes:
-      - /opt/adsb/skysquitter/vpn:/config # // Provided VPN key file needs to be placed here as 'wg0.conf' <<<<
       - /lib/modules:/lib/modules
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
-    #network_mode: service:readsb # > PLEASE SET THE NAME OF THE RECEIVER CONTAINER <<<<<<<<
     restart: always
     depends_on:
       - readsb
