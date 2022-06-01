@@ -26,7 +26,7 @@ do
     # check if pings work:
     if ! ping -c5 ${DEST_HOST} >/dev/null 2>&1
     then
-      (( PING_FAILURE_COUNT++ ))
+      (( PING_FAILURE_COUNT++ )) || true
       if (( PING_FAILURE_COUNT > WATCHDOG_MAX_FAILURES ))
       then
         echo "[$APPNAME][$(date)] Cannot reach ${DEST_HOST} -- Maximum Failure Count of ${WATCHDOG_MAX_FAILURES} exceeded."
@@ -36,13 +36,14 @@ do
         echo "[$APPNAME][$(date)] Cannot reach ${DEST_HOST} -- Failure ${PING_FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES} allowed failures."
       fi
     else
+      (( PING_FAILURE_COUNT > 0 )) && echo "[$APPNAME][$(date)] ${DEST_HOST} can be reached again." || true
       PING_FAILURE_COUNT=0
     fi
 
     # check if data is flowing
     if [[ "$(grep captured <<< $(timeout --preserve-status 3 tcpdump -i wg0 udp port ${DEST_PORT} 2>/dev/stdout 1>/dev/null) | awk '{print $1}')" == "0" ]]
     then
-      (( TCPD_FAILURE_COUNT++ ))
+      (( TCPD_FAILURE_COUNT++ )) || true
       if (( TCPD_FAILURE_COUNT > WATCHDOG_MAX_FAILURES ))
       then
         echo "[$APPNAME][$(date)] No data is flowing to UDP port ${DEST_PORT}-- Maximum Failure Count of ${WATCHDOG_MAX_FAILURES} exceeded."
@@ -52,6 +53,8 @@ do
         echo "[$APPNAME][$(date)] No data is flowing to UDP port ${DEST_PORT} -- Failure count ${TCPD_FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES} allowed failures."
       fi
     else
+      (( TCPD_FAILURE_COUNT > 0 )) && echo "[$APPNAME][$(date)] Data is flowing again to UDP port ${DEST_PORT}." || true
+
       TCPD_FAILURE_COUNT=0
     fi
       

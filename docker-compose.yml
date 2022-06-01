@@ -17,7 +17,7 @@ services:
       - LOGGING=false       # Log file available in ./skysquitter/ folder if set to 'true'
       - RECV_HOST=readsb    # Receiver service host address > PLEASE SET AS REQUIRED <<<<<<<<<<<<<<<<
       - RECV_PORT=30005     # Receiver service port number  > PLEASE SET AS REQUIRED <<<<<<<<<<<<<<<<
-      - RECV_TIMEOUT=60     # (s) If no Mode S msg is received during given time, restart this
+      - RECV_TIMEOUT=999    # (s) If no Mode S msg is received during given time, restart this
       - DEST_HOST=10.9.2.1  # !!! DO NOT CHANGE OR DELETE !!! (VPN host of backend)
       - DEST_PORT=11092     # !!! DO NOT CHANGE OR DELETE !!! (VPN port of backend)
       - MY_IP=10.9.2.4
@@ -40,13 +40,13 @@ services:
     ports:
       - 30105:30105
     environment:
-      - TZ=AMerica/New_York
+      - TZ=America/New_York
       - DISABLE_PERFORMANCE_GRAPHS=true
       - DISABLE_WEBAPP=true
       - READSB_NET_ENABLE=true
       - READSB_NET_ONLY=true
       - READSB_FORWARD_MLAT=true
-      - READSB_NET_CONNECTOR=192.168.0.35,30005,beast_in
+      - READSB_NET_CONNECTOR=10.244.10.168,30005,beast_in
       - READSB_NET_BEAST_OUTPUT_PORT=30005
     tmpfs:
       - /run/readsb
