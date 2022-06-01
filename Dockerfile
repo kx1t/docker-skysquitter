@@ -1,6 +1,7 @@
 
 
-FROM linuxserver/wireguard:latest
+#FROM linuxserver/wireguard:latest
+FROM ghcr.io/sdr-enthusiasts/docker-baseimage:python
 
 # Preset a number of ENV variables as fall back when not defined at runtime:
 ENV START_DELAY=5000
