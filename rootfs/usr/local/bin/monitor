@@ -1,0 +1,16 @@
+#!/usr/bin/with-contenv bash
+#shellcheck shell=bash
+
+if [[ "$1" == "-?" ]]
+then
+  echo "Usage: $0 [<interval> [<repeats>]]
+  exit 0
+fi
+
+[[ ! -z "$1" ]] && INTERVAL="$1" || INTERVAL=3
+[[ ! -z "$2" ]] && REPEATS="$2" || REPEATS=5
+
+for (( i=0; i<$REPEATS; i++ ))
+do
+	timeout $INTERVAL tcpdump -i wg0 udp port ${DEST_PORT} 2>/dev/stdout 1>/dev/null | grep packets
+done
