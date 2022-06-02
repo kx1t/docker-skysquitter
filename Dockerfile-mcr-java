@@ -8,12 +8,13 @@ ENV RECV_PORT=30005
 ENV RECV_TIMEOUT=60
 ENV DEST_HOST=10.9.2.1
 ENV DEST_PORT=11092
-
 ENV JAVA_HOME /usr/lib/jvm/msopenjdk-17
 ENV PATH "${JAVA_HOME}/bin:${PATH}"
 
+ARG BUILDARCH
+
 # Copy JDK
-COPY --from=mcr.microsoft.com/openjdk/jdk:17-ubuntu $JAVA_HOME $JAVA_HOME
+COPY --from=mcr.microsoft.com/openjdk/jdk:17-ubuntu $JAVA_HOME-${BUILDARCH} $JAVA_HOME-${BUILDARCH}
 
 RUN set -x && \
 #
