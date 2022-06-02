@@ -1,3 +1,17 @@
+
+
+
+# Create custom java runtime:
+FROM mcr.microsoft.com/openjdk/jdk:17-ubuntu as runtime-build
+
+RUN $JAVA_HOME/bin/jlink \
+         --add-modules java.base \
+         --strip-debug \
+         --no-man-pages \
+         --no-header-files \
+         --compress=2 \
+         --output /javaruntime
+
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:python
 
 # Preset a number of ENV variables as fall back when not defined at runtime:
@@ -13,8 +27,8 @@ ENV PATH "${JAVA_HOME}/bin:${PATH}"
 
 ARG TARGETARCH
 
-# Copy JDK
-COPY --from=mcr.microsoft.com/openjdk/jdk:17-ubuntu $JAVA_HOME-${TARGETARCH} $JAVA_HOME-${TARGETARCH}
+# Add custom JRE to the image:
+COPY --from=runtime-build /javaruntime $JAVA_HOME
 
 RUN set -x && \
 #
