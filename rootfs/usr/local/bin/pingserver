@@ -1,0 +1,4 @@
+#!/usr/bin/with-contenv bash
+#shellcheck shell=bash
+
+ping -c 5 ${DEST_HOST}
