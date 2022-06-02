@@ -2,3 +2,9 @@
 #shellcheck shell=bash
 
 ping -c 5 ${RECV_HOST}
+if [[ $(timeout --preserve-status 5 netcat -z -v ${RECV_HOST} ${RECV_PORT} 2>/dev/null ; echo $?) != "0" ]]
+then
+  echo "We also tried to connect to ${RECV_HOST}:${RECV_PORT}; this failed. Please check that the RECV_HOST and RECV_PORT parameters are set correctly and that your Beast data source is available."
+else
+  echo "We also tried to connect to ${RECV_HOST}:${RECV_PORT}; your Beast Data source appears to be GOOD."
+fi

@@ -14,7 +14,7 @@ This is done using a small Java application that converts data retrieved via a T
 The data is sent securely via a WireGuard VPN that is also part of the container. The VPN is set up in such a way that the SkySquitter Service has access to the data from the SkySquitter container, but not to any other container in your stack.
 
 Configuration of SkySquitter has the following prerequisites:
-- a Linux machine (PC, Raspberry Pi, etc.) with a functioning Docker configuration
+- a Linux machine (PC, Raspberry Pi, etc.) with a functioning Docker configuration. See [here](https://github/com/sdr-enthusiasts/docker-install) for some help on how to get this done quickly.
 - we strongly recommend using `docker-compose` to manage your container
 
 Using the example [`docker-compose.yml`](docker-compose.yml) file, please configure the following parameters. Unless told otherwise by SkySquitter, please do not modify any of the other parameters:
@@ -55,7 +55,9 @@ Note - in the commands below, we are assuming that your SkySquitter container is
 
 ## Troubleshooting
 The SkySquitter container is reasonably "self-correcting": if your Beast Host or the SkySquitter network cannot be reached, it will take progressive steps to try to remedy the issue.
-The container may be restarted if that is the case
+The container restart itself if that is the case.
+If problems continue, then this has probably to do with your setup. Make sure that the `capadd` and `sysctl` sections are present in your [`docker-compose.yml`](docker-compose.yml) file and use the [example](docker-compose.yml) in this repo as your starting point.
+Make sure that the `WG_PRIVKEY`, `WG_PSK`, and `MY_IP` variables are set *exactly* as instructed by SkySquitter.
 
 ## Configuration Alternatives
 
@@ -73,9 +75,7 @@ To install this `wg0.conf` file:
 SkySquitter is owned by, and copyright by SkySquitter. All rights reserved.
 Contact info@SkySquitter.com for more information.
 
-The package includes software by WireGuard, and docker wrappers by LinuxServer. These are licensed under the Gnu Public License, version 3.
-
-The software, scripts, and data of this repository were created by kx1t and are licensed under the Gnu Public License, version 3.
+The software, scripts, and data of this repository were created by kx1t and are licensed under the [MIT License](LICENSE).
 
 The Java beast-feeder.jar is a module that is provided by, and copyright by SkySquitter.
 
