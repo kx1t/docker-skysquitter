@@ -5,7 +5,7 @@
 SkySquitter collects ADS-B data from feeders like dump1090/dump1090-fa/readsb/tar1090 and creates a weather map based on this. The service is experimental. More information is available at https://www.skysquitter.com/
 
 ## Feeding SkySquitter
-Skysquitter uses crowd-sourced data on an invitation-only basis. If you think you would like to contribute, please contact info@SkySquitter.com.
+**Skysquitter uses crowd-sourced data on a very limited, invitation-only basis. If you think you would like to contribute, please contact info@SkySquitter.com.**
 
 ## SkySquitter container configuration
 
