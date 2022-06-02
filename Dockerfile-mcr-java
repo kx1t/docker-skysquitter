@@ -11,10 +11,10 @@ ENV DEST_PORT=11092
 ENV JAVA_HOME /usr/lib/jvm/msopenjdk-17
 ENV PATH "${JAVA_HOME}/bin:${PATH}"
 
-ARG BUILDARCH
+ARG TARGETARCH
 
 # Copy JDK
-COPY --from=mcr.microsoft.com/openjdk/jdk:17-ubuntu $JAVA_HOME-${BUILDARCH} $JAVA_HOME-${BUILDARCH}
+COPY --from=mcr.microsoft.com/openjdk/jdk:17-ubuntu $JAVA_HOME-${TARGETARCH} $JAVA_HOME-${TARGETARCH}
 
 RUN set -x && \
 #
