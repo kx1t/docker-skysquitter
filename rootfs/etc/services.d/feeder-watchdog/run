@@ -27,6 +27,15 @@ fix_wg ()
   ping -c5 $1 >/dev/null 2>&1 && return 0 || return 1
 }
 
+fix_feeder ()
+{ # bring down the feeder Java app:
+  pkill java
+  sleep 15
+
+  # check if data is flowing again:
+  [[ "$(grep captured <<< $(timeout --preserve-status 3 tcpdump -i wg0 udp port ${DEST_PORT} 2>/dev/stdout 1>/dev/null) | awk '{print $1}')" == "0" ]] && return 0 || return 1 
+}
+
 [[ -z "$WATCHDOG_MAX_FAILURES" ]] && WATCHDOG_MAX_FAILURES=10 || true
 PING_FAILURE_COUNT=0
 TCPD_FAILURE_COUNT=0
@@ -46,6 +55,9 @@ do
         then
           echo "[$APPNAME][$(date)] VPN fix attempt failed. Shutting down the container to auto-restart..."
           s6-svscanctl -t /var/run/s6/services
+        else
+          echo "[$APPNAME][$(date)] VPN fix attenpt succeeded!"
+          PING_FAILURE_COUNT=0
         fi
       else
         echo "[$APPNAME][$(date)] Cannot reach ${DEST_HOST} -- Failure ${PING_FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES} allowed failures."
@@ -62,8 +74,15 @@ do
       if (( TCPD_FAILURE_COUNT > WATCHDOG_MAX_FAILURES ))
       then
         echo "[$APPNAME][$(date)] No data is flowing to UDP port ${DEST_PORT}-- Maximum Failure Count of ${WATCHDOG_MAX_FAILURES} exceeded."
-        echo "[$APPNAME][$(date)] Shutting down the container to auto-restart..."
-        s6-svscanctl -t /var/run/s6/services
+        echo "[$APPNAME][$(date)] Performing last-ditch effort to restart the feeder..."
+        if ! fix_feeder
+        then
+          echo "[$APPNAME][$(date)] Last-ditch effort failed. Shutting down the container to auto-restart..."
+          s6-svscanctl -t /var/run/s6/services
+        else
+          echo "[$APPNAME][$(date)] Last-ditch effort succeeded. Data is f flowing again!"
+          TCPD_FAILURE_COUNT=0
+       fi  
       else
         echo "[$APPNAME][$(date)] No data is flowing to UDP port ${DEST_PORT} -- Failure count ${TCPD_FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES} allowed failures."
       fi
