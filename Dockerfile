@@ -6,7 +6,7 @@ FROM ghcr.io/sdr-enthusiasts/docker-baseimage:python
 # Preset a number of ENV variables as fall back when not defined at runtime:
 ENV START_DELAY=0
 ENV LOGGING=false
-ENV RECV_HOST=
+ENV RECV_HOST=readsb
 ENV RECV_PORT=30005
 ENV RECV_TIMEOUT=60
 ENV DEST_HOST=10.9.2.1
