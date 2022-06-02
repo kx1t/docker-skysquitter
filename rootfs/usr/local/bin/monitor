@@ -3,7 +3,7 @@
 
 if [[ "$1" == "-?" ]]
 then
-  echo "Usage: $0 [<interval> [<repeats>]]
+  echo "Usage: $0 [<interval> [<repeats>]]"
   exit 0
 fi
 
