@@ -12,7 +12,7 @@ APPNAME="$(hostname)/50-wireguard-setkeys"
 
 # check if the template has been replaced:
 read -r teststring < /config/wg0.conf
-if [[ "${teststring:0:14}" == "# wg0 template" ]]
+if [[ "${teststring:0:14}" != "# wg0 template" ]]
 then
   # dont use the template as it has been replaced
   echo "[$APPNAME][$(date)] Using custom uploaded wg0.conf file - ignoring environment variables"
