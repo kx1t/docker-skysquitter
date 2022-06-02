@@ -17,19 +17,6 @@ COPY --from=mcr.microsoft.com/openjdk/jdk:17-ubuntu $JAVA_HOME $JAVA_HOME
 
 RUN set -x && \
 #
-# parse target platform:
-    if [ "$TARGETPLATFORM" = "linux/amd64" ]
-    then
-      ARCHITECTURE=amd64
-    elif [ "$TARGETPLATFORM" = "linux/arm/v7" ]
-    then
-      ARCHITECTURE=arm
-    elif [ "$TARGETPLATFORM" = "linux/arm64" ]
-    then
-      ARCHITECTURE=aarch64
-    else
-      ARCHITECTURE=amd64
-    fi && \
 # Install these packages:
     apt-get update && \
     apt-get install -y --no-install-recommends \
