@@ -31,7 +31,7 @@ RUN set -x && \
 
   apt-get update && \
   echo "The following dependencies will also be installed:" && \
-  apt-cache depends "${KEPT_PACKAGE[@]}" "${TEMP_PACKAGE[@]}" && \
+  apt-cache depends "${KEPT_PACKAGES[@]}" "${TEMP_PACKAGES[@]}" && \
   echo "----------------------------------------" && \
   apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
     "${KEPT_PACKAGE[@]}" "{$TEMP_PACKAGE[@]}" && \
