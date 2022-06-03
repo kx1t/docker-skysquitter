@@ -5,7 +5,7 @@
 FROM mcr.microsoft.com/openjdk/jdk:17-ubuntu as runtime-build
 
 RUN set -x && \
-    ${JAVA_HOME}/bin/jlink \
+    "${JAVA_HOME}"/bin/jlink \
          --add-modules java.base \
          --strip-debug \
          --no-man-pages \
