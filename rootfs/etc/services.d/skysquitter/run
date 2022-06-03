@@ -1,5 +1,5 @@
 #!/usr/bin/with-contenv bash
-#shellcheck disable=SC2153
+#shellcheck shell=bash disable=SC2153
 
 # -----------------------------------------------------------------------------------
 # Copyright 2022 kx1t - licensed under the terms and conditions

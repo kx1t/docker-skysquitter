@@ -2,7 +2,7 @@
 name: Linting (Markdown)
 
 on:
-  pull_request:
+  push:
     branches:
       - main
       # only run these if markdown files are updated

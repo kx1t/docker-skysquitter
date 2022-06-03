@@ -1,5 +1,5 @@
 #!/usr/bin/with-contenv bash
-#shellcheck shell=bash
+#s hellcheck shell=bash
 
 if [[ "$1" == "-?" ]]
 then
