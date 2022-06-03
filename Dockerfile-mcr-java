@@ -1,18 +1,6 @@
 
 
-
-# Create custom java runtime:
-FROM mcr.microsoft.com/openjdk/jdk:17-ubuntu as runtime-build
-
-RUN set -x && \
-    "${JAVA_HOME}"/bin/jlink \
-         --add-modules java.base \
-         --strip-debug \
-         --no-man-pages \
-         --no-header-files \
-         --compress=2 \
-         --output /javaruntime
-
+#FROM linuxserver/wireguard:latest
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:python
 
 # Preset a number of ENV variables as fall back when not defined at runtime:
@@ -23,13 +11,6 @@ ENV RECV_PORT=30005
 ENV RECV_TIMEOUT=60
 ENV DEST_HOST=10.9.2.1
 ENV DEST_PORT=11092
-ENV JAVA_HOME /usr/lib/jvm/msopenjdk-17
-ENV PATH "${JAVA_HOME}/bin:${PATH}"
-
-ARG TARGETARCH
-
-# Add custom JRE to the image:
-COPY --from=runtime-build /javaruntime $JAVA_HOME
 
 # hadolint ignore=SC2115
 RUN set -x && \
@@ -37,15 +18,22 @@ RUN set -x && \
 # Install these packages:
     apt-get update && \
     apt-get install -y --no-install-recommends \
-#        openjdk-17-jre-headless \
+        openjdk-17-jre-headless \
         netcat \
         tcpdump \
         nano \
         vim \
         iputils-ping \
+#        openjdk-17-jre-headless \
         iproute2 \
         openresolv \
-        wireguard && \
+        wireguard \
+        wget && \
+
+    wget -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | apt-key add - && \
+    add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ && \
+        apt-get update && apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests\
+        adoptopenjdk-16-hotspot-jre && \
 
 #    echo ${TEMP_PACKAGES[@]} > /tmp/temp_packages
 #
