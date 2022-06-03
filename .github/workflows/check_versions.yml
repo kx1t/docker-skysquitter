@@ -11,7 +11,7 @@ env:
   GHCR_IMAGE: ${{ github.repository }}:latest
   GHCR_REGISTRY: ghcr.io
   WORKFLOW_FILE_TO_TRIGGER: deploy.yml
-  WORKFLOW_AUTH_TOKEN: ${{ secrets.GH_PAT_KX1T }}
+  WORKFLOW_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
 
