@@ -1,5 +1,5 @@
 ---
-name: Linting (Markdown)
+name: Linting (ShellCheck)
 
 on:
   push:
@@ -16,4 +16,4 @@ jobs:
         uses: azohra/shell-linter@latest
         with:
           severity: "warning"
-          path: "rootfs/etc/cont.initd/*,rootfs/etc/services.d/*/*,rootfs/usr/local/bin/{monitor,pingbeast,pingserver}"
+          path: "rootfs/etc/cont-init.d/*,rootfs/etc/services.d/*/*,rootfs/usr/local/bin/{monitor,pingbeast,pingserver}"
