@@ -16,30 +16,28 @@ ENV DEST_PORT=11092
 RUN set -x && \
 #
 # Install these packages:
-    apt-get update && \
-    apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
-        netcat \
-        tcpdump \
-        nano \
-        vim \
-        iputils-ping \
-        openjdk-17-jre-headless \
-        iproute2 \
-        openresolv \
-        wireguard && \
+  TEMP_PACKAGES=() && \
+  KEPT_PACKAGES=() && \
 
-#    echo ${TEMP_PACKAGES[@]} > /tmp/temp_packages
-#
-#
-# Now add a layer with the local builds
-# Note -- there are no local build requirements so this layer isnt necessary
-#RUN set -x && \
-#    TEMP_PACKAGES=$(cat /tmp/temp_packages) && \
-#    apt-get update && \
-#    apt-get install -y --no-install-recommends ${TEMP_PACKAGES[@]} && \
-#
+  KEPT_PACKAGES+=(netcat) && \
+  KEPT_PACKAGES+=(tcpdump) && \
+  KEPT_PACKAGES+=(nano) && \
+  KEPT_PACKAGES+=(vim) && \
+  KEPT_PACKAGES+=(iputils-ping) && \
+  KEPT_PACKAGES+=(openjdk-17-jre-headless) && \
+  KEPT_PACKAGES+=(iproute2) && \
+  KEPT_PACKAGES+=(openresolv) && \
+  KEPT_PACKAGES+=(wireguard) && \
+
+    apt-get update && \
+    echo "The following dependencies will also be installed:" && \
+    apt-cache depends "${KEPT_PACKAGE[@]}" "{$TEMP_PACKAGE[@]}" && \
+    echo "----------------------------------------" && \
+    apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
+      "${KEPT_PACKAGE[@]}" "{$TEMP_PACKAGE[@]}"
+
 # Clean up
-#    apt-get remove -y ${TEMP_PACKAGES[@]} && \
+     if [[ "${#TEMP_PACKAGES[@]}" -gt "0" ]]; then apt-get remove -y ${TEMP_PACKAGES[@]}; fi && \
      apt-get autoremove -y && \
      apt-get clean -y && \
      rm -rf /src /tmp/* /var/lib/apt/lists/* /boot/* /vmlinuz* /initrd.img* && \
