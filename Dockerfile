@@ -17,8 +17,7 @@ RUN set -x && \
 #
 # Install these packages:
     apt-get update && \
-    apt-get install -y --no-install-recommends \
-        openjdk-17-jre-headless \
+    apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
         netcat \
         tcpdump \
         nano \

@@ -18,13 +18,11 @@ RUN set -x && \
 # Install these packages:
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        openjdk-17-jre-headless \
         netcat \
         tcpdump \
         nano \
         vim \
         iputils-ping \
-#        openjdk-17-jre-headless \
         iproute2 \
         openresolv \
         wireguard \
