@@ -18,7 +18,6 @@ RUN set -x && \
 # Install these packages:
   TEMP_PACKAGES=() && \
   KEPT_PACKAGES=() && \
-
   KEPT_PACKAGES+=(netcat) && \
   KEPT_PACKAGES+=(tcpdump) && \
   KEPT_PACKAGES+=(nano) && \
@@ -29,7 +28,7 @@ RUN set -x && \
   KEPT_PACKAGES+=(openresolv) && \
   KEPT_PACKAGES+=(wireguard-dkms) && \
   KEPT_PACKAGES+=(wireguard-tools) && \
-
+#
   apt-get update && \
   echo "The following dependencies will also be installed:" && \
   apt-cache depends "${KEPT_PACKAGES[@]}" "${TEMP_PACKAGES[@]}" && \
