@@ -12,6 +12,7 @@ ENV RECV_TIMEOUT=60
 ENV DEST_HOST=10.9.2.1
 ENV DEST_PORT=11092
 
+# hadolint ignore=SC2115
 RUN set -x && \
 #
 # Install these packages:

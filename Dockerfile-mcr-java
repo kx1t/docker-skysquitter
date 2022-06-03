@@ -31,6 +31,7 @@ ARG TARGETARCH
 # Add custom JRE to the image:
 COPY --from=runtime-build /javaruntime $JAVA_HOME
 
+# hadolint ignore=SC2115
 RUN set -x && \
 #
 # Install these packages:
