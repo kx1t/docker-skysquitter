@@ -37,7 +37,7 @@ RUN set -x && \
       "${KEPT_PACKAGE[@]}" "{$TEMP_PACKAGE[@]}"
 
 # Clean up
-     if [[ "${#TEMP_PACKAGES[@]}" -gt "0" ]]; then apt-get remove -y ${TEMP_PACKAGES[@]}; fi && \
+     test -n "${#TEMP_PACKAGES[@]}" && apt-get remove -y ${TEMP_PACKAGES[@]} || true && \
      apt-get autoremove -y && \
      apt-get clean -y && \
      rm -rf /src /tmp/* /var/lib/apt/lists/* /boot/* /vmlinuz* /initrd.img* && \
