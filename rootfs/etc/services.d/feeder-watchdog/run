@@ -1,5 +1,5 @@
 #!/usr/bin/with-contenv bash
-#shellcheck shell=bash
+#shellcheck disable=SC2164
 
 # -----------------------------------------------------------------------------------
 # Copyright 2022 kx1t - licensed under the terms and conditions
@@ -36,7 +36,7 @@ fix_feeder ()
   sleep 15
 
   # check if data is flowing again:
-  [[ "$(grep captured <<< $(timeout --preserve-status 3 tcpdump -i wg0 udp port ${DEST_PORT} 2>/dev/stdout 1>/dev/null) | awk '{print $1}')" == "0" ]] && return 0 || return 1
+  [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -i wg0 udp port ${DEST_PORT} 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]] && return 0 || return 1
 }
 
 [[ -z "$WATCHDOG_MAX_FAILURES" ]] && WATCHDOG_MAX_FAILURES=10 || true
@@ -71,7 +71,7 @@ do
     fi
 
     # check if data is flowing
-    if [[ "$(grep captured <<< $(timeout --preserve-status 3 tcpdump -i wg0 udp port ${DEST_PORT} 2>/dev/stdout 1>/dev/null) | awk '{print $1}')" == "0" ]]
+    if [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -i wg0 udp port ${DEST_PORT} 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]]
     then
       (( TCPD_FAILURE_COUNT++ )) || true
       if (( TCPD_FAILURE_COUNT > WATCHDOG_MAX_FAILURES ))
