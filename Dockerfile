@@ -34,7 +34,7 @@ RUN set -x && \
   apt-cache depends "${KEPT_PACKAGES[@]}" "${TEMP_PACKAGES[@]}" && \
   echo "----------------------------------------" && \
   apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
-    "${KEPT_PACKAGE[@]}" "${TEMP_PACKAGE[@]}" && \
+    "${KEPT_PACKAGES[@]}" "${TEMP_PACKAGES[@]}" && \
 
 # Clean up
    if [[ -n "${#TEMP_PACKAGES[@]}" ]]; then apt-get remove -y "${TEMP_PACKAGES[@]}"; fi && \
