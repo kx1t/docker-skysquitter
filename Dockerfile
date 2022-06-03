@@ -34,10 +34,10 @@ RUN set -x && \
     apt-cache depends "${KEPT_PACKAGE[@]}" "{$TEMP_PACKAGE[@]}" && \
     echo "----------------------------------------" && \
     apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
-      "${KEPT_PACKAGE[@]}" "{$TEMP_PACKAGE[@]}"
+      "${KEPT_PACKAGE[@]}" "{$TEMP_PACKAGE[@]}" && \
 
 # Clean up
-     test -n "${#TEMP_PACKAGES[@]}" && apt-get remove -y ${TEMP_PACKAGES[@]} || true && \
+     if [[ -n "${#TEMP_PACKAGES[@]}" ]]; then apt-get remove -y "${TEMP_PACKAGES[@]}"; fi && \
      apt-get autoremove -y && \
      apt-get clean -y && \
      rm -rf /src /tmp/* /var/lib/apt/lists/* /boot/* /vmlinuz* /initrd.img* && \
