@@ -29,22 +29,22 @@ RUN set -x && \
   KEPT_PACKAGES+=(openresolv) && \
   KEPT_PACKAGES+=(wireguard) && \
 
-    apt-get update && \
-    echo "The following dependencies will also be installed:" && \
-    apt-cache depends "${KEPT_PACKAGE[@]}" "{$TEMP_PACKAGE[@]}" && \
-    echo "----------------------------------------" && \
-    apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
-      "${KEPT_PACKAGE[@]}" "{$TEMP_PACKAGE[@]}" && \
+  apt-get update && \
+  echo "The following dependencies will also be installed:" && \
+  apt-cache depends "${KEPT_PACKAGE[@]}" "${TEMP_PACKAGE[@]}" && \
+  echo "----------------------------------------" && \
+  apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
+    "${KEPT_PACKAGE[@]}" "{$TEMP_PACKAGE[@]}" && \
 
 # Clean up
-     if [[ -n "${#TEMP_PACKAGES[@]}" ]]; then apt-get remove -y "${TEMP_PACKAGES[@]}"; fi && \
-     apt-get autoremove -y && \
-     apt-get clean -y && \
-     rm -rf /src /tmp/* /var/lib/apt/lists/* /boot/* /vmlinuz* /initrd.img* && \
+   if [[ -n "${#TEMP_PACKAGES[@]}" ]]; then apt-get remove -y "${TEMP_PACKAGES[@]}"; fi && \
+   apt-get autoremove -y && \
+   apt-get clean -y && \
+   rm -rf /src /tmp/* /var/lib/apt/lists/* /boot/* /vmlinuz* /initrd.img* && \
 #
 # Do some stuff for kx1t's convenience:
-    echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
-    echo "alias nano=\"nano -l\"" >> /root/.bashrc
+  echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
+  echo "alias nano=\"nano -l\"" >> /root/.bashrc
 
 COPY rootfs/ /
 
