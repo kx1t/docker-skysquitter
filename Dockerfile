@@ -27,7 +27,8 @@ RUN set -x && \
   KEPT_PACKAGES+=(openjdk-17-jre-headless) && \
   KEPT_PACKAGES+=(iproute2) && \
   KEPT_PACKAGES+=(openresolv) && \
-  KEPT_PACKAGES+=(wireguard) && \
+  KEPT_PACKAGES+=(wireguard-dkms) && \
+  KEPT_PACKAGES+=(wireguard-tools) && \
 
   apt-get update && \
   echo "The following dependencies will also be installed:" && \
