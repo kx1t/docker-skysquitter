@@ -1,59 +1,61 @@
+    FROM ghcr.io/sdr-enthusiasts/docker-baseimage:python
 
+    # Preset a number of ENV variables as fall back when not defined at runtime:
+    ENV START_DELAY=0
+    ENV LOGGING=false
+    ENV RECV_HOST=readsb
+    ENV RECV_PORT=30005
+    ENV RECV_TIMEOUT=60
+    ENV DEST_HOST=10.9.2.1
+    ENV DEST_PORT=11092
 
-#FROM linuxserver/wireguard:latest
-FROM ghcr.io/sdr-enthusiasts/docker-baseimage:python
+    # hadolint ignore=SC2115
+    RUN set -x && \
+    #
+    # Install these packages:
+      TEMP_PACKAGES=() && \
+      KEPT_PACKAGES=() && \
 
-# Preset a number of ENV variables as fall back when not defined at runtime:
-ENV START_DELAY=0
-ENV LOGGING=false
-ENV RECV_HOST=readsb
-ENV RECV_PORT=30005
-ENV RECV_TIMEOUT=60
-ENV DEST_HOST=10.9.2.1
-ENV DEST_PORT=11092
+      KEPT_PACKAGES+=(netcat) && \
+      KEPT_PACKAGES+=(tcpdump) && \
+      KEPT_PACKAGES+=(nano) && \
+      KEPT_PACKAGES+=(vim) && \
+      KEPT_PACKAGES+=(iputils-ping) && \
+      KEPT_PACKAGES+=(openjdk-17-jre-headless) && \
+      # KEPT_PACKAGES+=(iproute2) && \
+      KEPT_PACKAGES+=(software-properties-common) && \
+      TEMP_PACKAGES+=(debconf-utils) && \
+      KEPT_PACKAGES+=(iptables curl) && \
+      # KEPT_PACKAGES+=(openresolv) && \
+      # KEPT_PACKAGES+=(wireguard) && \
 
-# hadolint ignore=SC2115
-RUN set -x && \
-#
-# Install these packages:
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        netcat \
-        tcpdump \
-        nano \
-        vim \
-        iputils-ping \
-        iproute2 \
-        openresolv \
-        wireguard \
-        wget && \
+      apt-get update && \
+      echo "The following dependencies will also be installed:" && \
+      apt-cache depends "${KEPT_PACKAGES[@]}" "${TEMP_PACKAGES[@]}" && \
+      echo "----------------------------------------" && \
+      apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
+        "${KEPT_PACKAGE[@]}" "${TEMP_PACKAGE[@]}" && \
 
-    wget -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | apt-key add - && \
-    add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ && \
-        apt-get update && apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests\
-        adoptopenjdk-16-hotspot-jre && \
+    # Add stuff from the WireGuard repo:
+      add-apt-repository --yes ppa:wireguard/wireguard && \
+      apt-get update && \
+      echo "The following dependencies will also be installed:" && \
+      apt-cache depends iproute2 wireguard-dkms wireguard-tools curl resolvconf && \
+      echo resolvconf resolvconf/linkify-resolvconf boolean false | debconf-set-selections && \
+      apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
+          iproute2 wireguard-dkms wireguard-tools resolvconf && \
 
-#    echo ${TEMP_PACKAGES[@]} > /tmp/temp_packages
-#
-#
-# Now add a layer with the local builds
-# Note -- there are no local build requirements so this layer isnt necessary
-#RUN set -x && \
-#    TEMP_PACKAGES=$(cat /tmp/temp_packages) && \
-#    apt-get update && \
-#    apt-get install -y --no-install-recommends ${TEMP_PACKAGES[@]} && \
-#
-# Clean up
-#    apt-get remove -y ${TEMP_PACKAGES[@]} && \
-     apt-get autoremove -y && \
-     apt-get clean -y && \
-     rm -rf /src /tmp/* /var/lib/apt/lists/* /boot/* /vmlinuz* /initrd.img* && \
-#
-# Do some stuff for kx1t's convenience:
-    echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
-    echo "alias nano=\"nano -l\"" >> /root/.bashrc
+    # Clean up
+       if [[ -n "${#TEMP_PACKAGES[@]}" ]]; then apt-get remove -y "${TEMP_PACKAGES[@]}"; fi && \
+       apt-get autoremove -y && \
+       apt-get clean -y && \
+       rm -rf /src /tmp/* /var/lib/apt/lists/* /boot/* /vmlinuz* /initrd.img* && \
+    #
+    # Do some stuff for kx1t's convenience:
+      echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
+      echo "alias nano=\"nano -l\"" >> /root/.bashrc
 
-COPY rootfs/ /
+    COPY rootfs/ /
 
-# Add healthcheck
-# HEALTHCHECK --start-period=60s --interval=600s CMD /home/healthcheck/healthcheck.sh
+    # Add healthcheck
+    # HEALTHCHECK --start-period=60s --interval=600s CMD /home/healthcheck/healthcheck.sh
