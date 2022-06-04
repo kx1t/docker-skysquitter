@@ -31,8 +31,8 @@ fix_wg ()
 }
 
 fix_feeder ()
-{ # bring down the feeder Java app:
-  pkill java
+{ # bring down the feeder Python app:
+  pkill beast-feeder
   sleep 15
 
   # check if data is flowing again:
