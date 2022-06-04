@@ -46,7 +46,7 @@ RUN set -x && \
    if [[ -n "${#TEMP_PACKAGES[@]}" ]]; then apt-get remove -y "${TEMP_PACKAGES[@]}"; fi && \
    apt-get autoremove -y && \
    apt-get clean -y && \
-   rm -rf /src /tmp/* /var/lib/apt/lists/* /boot/* /vmlinuz* /initrd.img* && \
+   rm -rf /src /tmp/* /var/lib/apt/lists/* /git && \
 #
 # Do some stuff for kx1t's convenience:
   echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
