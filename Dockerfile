@@ -40,7 +40,7 @@ RUN set -x && \
 # Install the Python feeder
    mkdir /git && \
    git clone --depth 1 https://github.com/skysquitter22/beast-feeder /git && \
-   cp /git/beast-feeder/beast-feeder.py /usr/local/bin/beast-feeder && \
+   cp /git/beast-feeder.py /usr/local/bin/beast-feeder && \
    chmod a+x /usr/local/bin/beast-feeder && \
 #
 # Clean up
