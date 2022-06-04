@@ -23,7 +23,7 @@ RUN set -x && \
   KEPT_PACKAGES+=(nano) && \
   KEPT_PACKAGES+=(vim) && \
   KEPT_PACKAGES+=(iputils-ping) && \
-  KEPT_PACKAGES+=(openjdk-17-jre-headless) && \
+# KEPT_PACKAGES+=(openjdk-17-jre-headless) && \
   KEPT_PACKAGES+=(iproute2) && \
   KEPT_PACKAGES+=(openresolv) && \
   KEPT_PACKAGES+=(wireguard-dkms) && \
@@ -35,7 +35,13 @@ RUN set -x && \
   echo "----------------------------------------" && \
   apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
     "${KEPT_PACKAGES[@]}" "${TEMP_PACKAGES[@]}" && \
-
+#
+# Install the Python feeder
+   mkdir /git && \
+   git clone --depth 1 https://github.com/skysquitter22/beast-feeder /git && \
+   cp /git/beast-feeder/beast-feeder.py /usr/local/bin/beast-feeder && \
+   chmod a+x /usr/local/bin/beast-feeder && \
+#
 # Clean up
    if [[ -n "${#TEMP_PACKAGES[@]}" ]]; then apt-get remove -y "${TEMP_PACKAGES[@]}"; fi && \
    apt-get autoremove -y && \
