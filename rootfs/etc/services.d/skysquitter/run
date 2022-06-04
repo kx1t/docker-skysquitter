@@ -42,4 +42,3 @@ touch /run/lock/beast-feeder.up
 rm -rf /run/lock/beast-feeder.up
 echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
 echo "[$APPNAME][$(date)] The Data Connector exited... we will restart in 10 seconds"
-sleep 10
