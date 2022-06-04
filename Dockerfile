@@ -28,6 +28,7 @@ RUN set -x && \
   KEPT_PACKAGES+=(openresolv) && \
   KEPT_PACKAGES+=(wireguard-dkms) && \
   KEPT_PACKAGES+=(wireguard-tools) && \
+  TEMP_PACKAGES+=(git) && \
 #
   apt-get update && \
   echo "The following dependencies will also be installed:" && \
