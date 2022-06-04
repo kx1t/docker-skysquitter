@@ -6,6 +6,9 @@
 
 
 APPNAME="$(hostname)/70-check-beastsource"
+
+rm -f /run/lock/beast-feeder.up
+
 while [[ $(timeout --preserve-status 5 netcat -z -v ${RECV_HOST} ${RECV_PORT} 2>/dev/null ; echo $?) != "0" ]]
 do
   echo "[$APPNAME][$(date)] ${RECV_HOST}:${RECV_PORT} is not yet available. Trying again in a bit."
