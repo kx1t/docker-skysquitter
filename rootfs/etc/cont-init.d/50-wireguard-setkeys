@@ -30,13 +30,6 @@ else
     EMERGENCY=true
   fi
 
-  if [[ "$WG_PSK" == "" ]]
-  then
-    echo "Emergency!"
-    echo "WG_PSK must be set. Please update your configuration and restart the container!"
-    EMERGENCY=true
-  fi
-
   if [[ "$MY_IP" == "" ]]
   then
     echo "Emergency!"
@@ -58,12 +51,6 @@ then
   EMERGENCY=true
 fi
 
-if ! grep "PresharedKey =" /config/wg0.conf >/dev/null 2>&1
-then
-  echo "Emergency! PresharedKey variable not found in \"wg0.conf\". Please update your configuration and restart the container!"
-  EMERGENCY=true
-fi
-
 if ! grep "Address =" /config/wg0.conf >/dev/null 2>&1
 then
   echo "Emergency! Address variable not found in \"wg0.conf\". Please update your configuration and restart the container!"
@@ -81,7 +68,13 @@ fi
 if [[ "$TEMPLATE" == "true" ]]
 then
   sed -i 's|\(^\s*PrivateKey\s*=\s*\).*|\1'"$WG_PRIVKEY"'|' /config/wg0.conf
-  sed -i 's|\(^\s*PresharedKey\s*=\s*\).*|\1'"$WG_PSK"'|' /config/wg0.conf
+  if [[ -n "$WG_PSK" ]]
+  then
+      sed -i 's|[\s#]*\(PresharedKey\s*=\s*\).*|\1'"$WG_PSK"'|' /config/wg0.conf
+  else
+      sed -i 's|\(^\s*PresharedKey\s*=.*\)|#\1|' /config/wg0.conf
+  fi
+
   sed -i 's|\(^\s*Address\s*=\s*\).*|\1'"$MY_IP"'|' /config/wg0.conf
 fi
 
