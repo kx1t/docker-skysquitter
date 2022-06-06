@@ -19,6 +19,8 @@ on:
       - '.gitattributes'
       - '.gitignore'
       - '.dockerignore'
+    schedule:
+      - cron: "5 4 * * 0,1,4"
 
 # Set workflow-wide environment variables
 #  - REPO: repo name on dockerhub
