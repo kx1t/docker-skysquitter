@@ -7,8 +7,8 @@ then
   exit 0
 fi
 
-[[ ! -z "$1" ]] && INTERVAL="$1" || INTERVAL=3
-[[ ! -z "$2" ]] && REPEATS="$2" || REPEATS=5
+[[ -n "$1" ]] && INTERVAL="$1" || INTERVAL=3
+[[ -n "$2" ]] && REPEATS="$2" || REPEATS=5
 
 for (( i=0; i<${REPEATS}; i++ ))
 do

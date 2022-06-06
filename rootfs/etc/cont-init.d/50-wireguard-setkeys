@@ -1,5 +1,5 @@
 #!/usr/bin/with-contenv bash
-# shellcheck shell=bash
+# shellcheck shell=bash disable=SC2015
 
 # This module makes sure that the Private Key and Preshared Key are set before we
 # configure and start up WireGuard

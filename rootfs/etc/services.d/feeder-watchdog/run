@@ -54,19 +54,19 @@ do
       then
         echo "[$APPNAME][$(date)] Ping Failure: cannot reach ${DEST_HOST} -- Maximum Failure Count of ${WATCHDOG_MAX_FAILURES} exceeded." | tee -a /var/log/feeder-watchdog.log
         echo "[$APPNAME][$(date)] Ping Failure: Trying to fix the VPN connection..." | tee -a /var/log/feeder-watchdog.log
-        if ! fix_wg ${DEST_HOST}
+        if ! fix_wg "${DEST_HOST}"
         then
           echo "[$APPNAME][$(date)] Ping Failure: VPN fix attempt failed. Shutting down the container to auto-restart..." | tee -a /var/log/feeder-watchdog.log
           s6-svscanctl -t /var/run/s6/services
         else
-          echo "[$APPNAME][$(date)] Ping Failure: VPN fix attempt succeeded!" | tee -a /var/log/feeder-watchdog.log
+          echo "[$APPNAME][$(date)] Ping Failure Resolved: VPN fix attempt succeeded!" | tee -a /var/log/feeder-watchdog.log
           PING_FAILURE_COUNT=0
         fi
       else
         echo "[$APPNAME][$(date)] Ping Failure: cannot reach ${DEST_HOST} -- Failure ${PING_FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES}." | tee -a /var/log/feeder-watchdog.log
       fi
     else
-      (( PING_FAILURE_COUNT > 0 )) && echo "[$APPNAME][$(date)] Ping Failure: ${DEST_HOST} can be reached again."  | tee -a /var/log/feeder-watchdog.log || true
+      (( PING_FAILURE_COUNT > 0 )) && echo "[$APPNAME][$(date)] Ping Failure Resolved: ${DEST_HOST} can be reached again."  | tee -a /var/log/feeder-watchdog.log || true
       PING_FAILURE_COUNT=0
     fi
 
@@ -90,7 +90,7 @@ do
         echo "[$APPNAME][$(date)] DataFlow Failure: No data is flowing to UDP port ${DEST_PORT} -- Failure count ${TCPD_FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES} allowed failures." | tee -a /var/log/feeder-watchdog.log
       fi
     else
-      (( TCPD_FAILURE_COUNT > 0 )) && echo "[$APPNAME][$(date)] DataFlow Failure: Data is flowing again to UDP port ${DEST_PORT}."  | tee -a /var/log/feeder-watchdog.log || true
+      (( TCPD_FAILURE_COUNT > 0 )) && echo "[$APPNAME][$(date)] DataFlow Failure Resolved: Data is flowing again to UDP port ${DEST_PORT}."  | tee -a /var/log/feeder-watchdog.log || true
       TCPD_FAILURE_COUNT=0
     fi
 

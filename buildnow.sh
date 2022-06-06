@@ -1,5 +1,5 @@
 #!/bin/bash
-# shelcheck ignore=SC2162,SC2015
+# shelcheck disable=SC2162,SC2015,SC2181
 
 [[ "$1" != "" ]] && BRANCH="$1" || BRANCH=main
 [[ "$BRANCH" == "main" ]] && TAG="latest" || TAG="$BRANCH"
