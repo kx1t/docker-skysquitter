@@ -1,5 +1,5 @@
 #!/usr/bin/with-contenv bash
-#shellcheck shell=bash disable=SC2164
+#shellcheck shell=bash disable=SC2164,SC2015
 
 # -----------------------------------------------------------------------------------
 # Copyright 2022 kx1t - licensed under the terms and conditions
@@ -27,16 +27,16 @@ fix_wg ()
   wg-quick up /config/wg0.conf
   sleep 10
   # Check if we were successful
-  ping -c5 $1 >/dev/null 2>&1 && return 0 || return 1
+  ping -c5 "$1" >/dev/null 2>&1 && return 0 || return 1
 }
 
 fix_feeder ()
-{ # bring down the feeder Java app:
-  pkill java
+{ # bring down the feeder Python app:
+  pkill beast-feeder
   sleep 15
 
   # check if data is flowing again:
-  [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -i wg0 udp port ${DEST_PORT} 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]] && return 0 || return 1
+   [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -i wg0 udp port "${DEST_PORT}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]] && return 0 || return 1
 }
 
 [[ -z "$WATCHDOG_MAX_FAILURES" ]] && WATCHDOG_MAX_FAILURES=10 || true
@@ -47,31 +47,31 @@ do
   if [[ -f /run/lock/beast-feeder.up ]]
   then
     # check if pings work:
-    if ! ping -c5 ${DEST_HOST} >/dev/null 2>&1
+    if ! ping -c5 "${DEST_HOST}" >/dev/null 2>&1
     then
       (( PING_FAILURE_COUNT++ )) || true
       if (( PING_FAILURE_COUNT > WATCHDOG_MAX_FAILURES ))
       then
         echo "[$APPNAME][$(date)] Ping Failure: cannot reach ${DEST_HOST} -- Maximum Failure Count of ${WATCHDOG_MAX_FAILURES} exceeded." | tee -a /var/log/feeder-watchdog.log
         echo "[$APPNAME][$(date)] Ping Failure: Trying to fix the VPN connection..." | tee -a /var/log/feeder-watchdog.log
-        if ! fix_wg ${DEST_HOST}
+        if ! fix_wg "${DEST_HOST}"
         then
           echo "[$APPNAME][$(date)] Ping Failure: VPN fix attempt failed. Shutting down the container to auto-restart..." | tee -a /var/log/feeder-watchdog.log
           s6-svscanctl -t /var/run/s6/services
         else
-          echo "[$APPNAME][$(date)] Ping Failure: VPN fix attempt succeeded!" | tee -a /var/log/feeder-watchdog.log
+          echo "[$APPNAME][$(date)] Ping Failure Resolved: VPN fix attempt succeeded!" | tee -a /var/log/feeder-watchdog.log
           PING_FAILURE_COUNT=0
         fi
       else
         echo "[$APPNAME][$(date)] Ping Failure: cannot reach ${DEST_HOST} -- Failure ${PING_FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES}." | tee -a /var/log/feeder-watchdog.log
       fi
     else
-      (( PING_FAILURE_COUNT > 0 )) && echo "[$APPNAME][$(date)] Ping Failure: ${DEST_HOST} can be reached again."  | tee -a /var/log/feeder-watchdog.log || true
+      (( PING_FAILURE_COUNT > 0 )) && echo "[$APPNAME][$(date)] Ping Failure Resolved: ${DEST_HOST} can be reached again."  | tee -a /var/log/feeder-watchdog.log || true
       PING_FAILURE_COUNT=0
     fi
 
     # check if data is flowing
-    if [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -i wg0 udp port ${DEST_PORT} 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]]
+    if [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -i wg0 udp port "${DEST_PORT}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]]
     then
       (( TCPD_FAILURE_COUNT++ )) || true
       if (( TCPD_FAILURE_COUNT > WATCHDOG_MAX_FAILURES ))
@@ -90,7 +90,7 @@ do
         echo "[$APPNAME][$(date)] DataFlow Failure: No data is flowing to UDP port ${DEST_PORT} -- Failure count ${TCPD_FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES} allowed failures." | tee -a /var/log/feeder-watchdog.log
       fi
     else
-      (( TCPD_FAILURE_COUNT > 0 )) && echo "[$APPNAME][$(date)] DataFlow Failure: Data is flowing again to UDP port ${DEST_PORT}."  | tee -a /var/log/feeder-watchdog.log || true
+      (( TCPD_FAILURE_COUNT > 0 )) && echo "[$APPNAME][$(date)] DataFlow Failure Resolved: Data is flowing again to UDP port ${DEST_PORT}."  | tee -a /var/log/feeder-watchdog.log || true
       TCPD_FAILURE_COUNT=0
     fi
 

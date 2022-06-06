@@ -1,5 +1,5 @@
 #!/usr/bin/with-contenv bash
-#shellcheck shell=bash disable=SC2153,SC2164
+#shellcheck shell=bash disable=SC2153,SC2164,SC2016
 
 # -----------------------------------------------------------------------------------
 # Copyright 2022 kx1t - licensed under the terms and conditions
@@ -25,7 +25,7 @@ sleep 10 # to make she the VPN is up and stable and stopped spamming the logs
 # Initiate some environment variables:
 echo "[$APPNAME][$(date)] Checking the SkySquitter Network..."
 # Now check if we can reach the SkySquitter server:
-while ! timeout --preserve-status 10 ping -c5 ${DEST_HOST} >/dev/null 2>&1
+while ! timeout --preserve-status 10 ping -c5 "${DEST_HOST}" >/dev/null 2>&1
 do
   echo "[$APPNAME][$(date)] ${DEST_HOST} is not yet available. Trying again in a bit."
   sleep 5
@@ -37,9 +37,8 @@ echo "[$APPNAME][$(date)] Starting the Data Connector..."
 
 # Now we can start parsing data from SOURCE and pass it to DEST:
 touch /run/lock/beast-feeder.up
-java -jar /opt/beast-feeder/beast-feeder.jar start_delay=${START_DELAY} logging=${LOGGING} recv_host=${RECV_HOST} recv_port=${RECV_PORT} recv_timeout=${RECV_TIMEOUT} dest_host=${DEST_HOST} dest_port=${DEST_PORT} \
-     | stdbuf -o0 sed --unbuffered '/^$/d' | stdbuf -o0 awk '{print "['${APPNAME}'][" strftime("%a %b %e %T %Z %Y", systime()) "] " $0}'
+/usr/local/bin/beast-feeder "${RECV_HOST}" "${RECV_PORT}" "${DEST_HOST}" "${DEST_PORT}" \
+     | stdbuf -o0 sed --unbuffered '/^$/d' | stdbuf -o0 awk '{print "['"${APPNAME}"'][" strftime("%a %b %e %T %Z %Y", systime()) "] " $0}'
 rm -rf /run/lock/beast-feeder.up
 echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
 echo "[$APPNAME][$(date)] The Data Connector exited... we will restart in 10 seconds"
-sleep 10

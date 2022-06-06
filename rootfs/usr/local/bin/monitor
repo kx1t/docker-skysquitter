@@ -1,5 +1,5 @@
 #!/usr/bin/with-contenv bash
-# shellcheck shell=bash
+# shellcheck shell=bash disable=SC2004
 
 if [[ "$1" == "-?" ]]
 then
@@ -7,10 +7,10 @@ then
   exit 0
 fi
 
-[[ ! -z "$1" ]] && INTERVAL="$1" || INTERVAL=3
-[[ ! -z "$2" ]] && REPEATS="$2" || REPEATS=5
+[[ -n "$1" ]] && INTERVAL="$1" || INTERVAL=3
+[[ -n "$2" ]] && REPEATS="$2" || REPEATS=5
 
-for (( i=0; i<$REPEATS; i++ ))
+for (( i=0; i<${REPEATS}; i++ ))
 do
-	echo "[$(date)]: $(grep packets <<< "$(timeout $INTERVAL tcpdump -i wg0 udp port ${DEST_PORT} 2>/dev/stdout 1>/dev/null)" | sed -z 's/\n/; /g;s/; $//')"
+	echo "[$(date)]: $(grep packets <<< "$(timeout "${INTERVAL}" tcpdump -i wg0 udp port "${DEST_PORT}" 2>/dev/stdout 1>/dev/null)" | sed -z 's/\n/; /g;s/; $//')"
 done
