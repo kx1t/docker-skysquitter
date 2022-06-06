@@ -1,5 +1,5 @@
 #!/bin/bash
-#
+# shelcheck ignore=SC2162,SC2015
 
 [[ "$1" != "" ]] && BRANCH="$1" || BRANCH=main
 [[ "$BRANCH" == "main" ]] && TAG="latest" || TAG="$BRANCH"
@@ -23,13 +23,13 @@ starttime="$(date +%s)"
 # rebuild the container
 if [[ "${SECONDARG,,}" != "nopull" ]]
 then
-	git checkout $BRANCH || exit 2
+	git checkout "$BRANCH" || exit 2
 	git pull -a
 else
 	SECONDARG=""
 fi
 
-docker buildx build --compress --push $SECONDARG --platform $ARCHS --tag $IMAGE1 .
-[[ "$?" == "0" ]] && docker buildx build --compress --push $SECONDARG --platform $ARCHS --tag $IMAGE2 .
+docker buildx build --compress --push "$SECONDARG" --platform "$ARCHS" --tag "$IMAGE1" .
+[[ "$?" == "0" ]] && docker buildx build --compress --push "$SECONDARG" --platform "$ARCHS" --tag "$IMAGE2" .
 
 echo "Total build time: $(( $(date +%s) - starttime )) seconds"
