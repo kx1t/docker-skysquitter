@@ -33,7 +33,7 @@ fix_wg ()
 fix_feeder ()
 { # bring down the feeder Python app:
   pkill beast-feeder
-  sleep 15
+  sleep 10
 
   # check if data is flowing again:
    [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -i wg0 udp port "${DEST_PORT}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]] && return 0 || return 1
