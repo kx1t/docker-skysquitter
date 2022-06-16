@@ -1,0 +1,13 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash disable=SC2016
+
+# This module makes sure that the Private Key and Preshared Key are set before we
+# configure and start up WireGuard
+
+
+APPNAME="$(hostname)/40-save-recv_host-ip"
+
+ip_address="$(ping -c1 ${RECV_HOST} | head -1 | awk -F '[()]' '{print $2}')"
+echo ${ip_address} > /run/recv_host_ip
+
+echo "[$(date)][${APPNAME}] The IP address for ${RECV_HOST} is ${ip_address}"
