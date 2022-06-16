@@ -21,6 +21,8 @@ then
 fi
 
 echo "[$APPNAME][$(date)] Started as an s6 service"
+echo "[$APPNAME][$(date)] SkySquitter Container Version: $(cat /.VERSION.docker-skysquitter)"
+echo "[$APPNAME][$(date)] Beast-Feeder Version: $(cat /.VERSION.beast-feeder)"
 # sleep 10 # to make she the VPN is up and stable and stopped spamming the logs
 # Initiate some environment variables:
 echo "[$APPNAME][$(date)] Checking the SkySquitter Network..."
