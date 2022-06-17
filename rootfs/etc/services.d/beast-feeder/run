@@ -28,7 +28,7 @@ echo "[$(date)][$APPNAME] Starting the Data Connector..."
 # Now we can start parsing data from SOURCE and pass it to DEST:
 touch /run/lock/beast-feeder.up
 /usr/local/bin/beast-feeder "${RECV_HOST}" "${RECV_PORT}" "${DEST_HOST}" "${DEST_PORT}" 2>&1 \
-     | stdbuf -o0 sed --unbuffered '/^$/d' | stdbuf -o0 awk '{print "['"${APPNAME}"'][" strftime("%a %b %e %T %Z %Y", systime()) "] " $0}'
+     | stdbuf -o0 sed --unbuffered '/^$/d' | stdbuf -o0 awk '{print "[" strftime("%a %b %e %T %Z %Y", systime()) "]['"$APPNAME"'] " $0}'
 rm -rf /run/lock/beast-feeder.up
 echo "[$(date)][$APPNAME] ---------------------------------------------------------------"
 echo "[$(date)][$APPNAME] The Data Connector exited... we will restart in 10 seconds"
