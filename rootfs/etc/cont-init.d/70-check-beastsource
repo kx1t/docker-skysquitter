@@ -16,6 +16,7 @@ rm -f /run/lock/beast-feeder.up
 if [[ "$(timeout --preserve-status 2 ping -c 1 "${RECV_HOST}" >/dev/null 2>&1; echo $?)" == "2" ]]
 then
   # Exit code 2 for ping means that the domain name couldn't be resolved
+  echo "[$(date)][$APPNAME] Name resolution for ${RECV_HOST} is no longer available. Falling back to using IP $(cat /run/recv_host_ip)"
   RECV_HOST="$(cat /run/recv_host_ip)"
 else
   # we don't need the IP address cache anymore
@@ -23,15 +24,16 @@ else
 fi
 
 starttime="$(date +%s)"
-maxwait=60
+[[ -z "$FAILURE_TIMEOUT" ]] && maxwait=60 || maxwait="$FAILURE_TIMEOUT"
 while [[ $(timeout --preserve-status 5 netcat -z -v "${RECV_HOST}" "${RECV_PORT}" 2>/dev/null ; echo $?) != "0" ]]
 do
   if (( "$(date +%s)" > starttime + maxwait ))
   then
-    echo "[$APPNAME][$(date)] ${RECV_HOST}:${RECV_PORT} couldn't be reached for $maxwait seconds. Terminating this container."
+    echo "[$(date)][$APPNAME] ${RECV_HOST}:${RECV_PORT} couldn't be reached for $maxwait seconds. Terminating this container."
     exit 1
   else
-    echo "[$APPNAME][$(date)] ${RECV_HOST}:${RECV_PORT} is not yet available; $(("$(date +%s)" - starttime)) of ${maxwait} seconds elapsed. Trying again in a bit."
+    echo "[$(date)][$APPNAME] ${RECV_HOST}:${RECV_PORT} is not yet available; $(("$(date +%s)" - starttime)) of ${maxwait} seconds elapsed. Trying again in a bit."
     sleep 5
   fi
 done
+echo "[$(date)][$APPNAME] ${RECV_HOST}:${RECV_PORT} is now available -- your Beast Data source is ready"
