@@ -1,5 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2162,SC2015,SC2181
+set -x
 
 [[ "$1" != "" ]] && BRANCH="$1" || BRANCH=main
 [[ "$BRANCH" == "main" ]] && TAG="latest" || TAG="$BRANCH"
@@ -26,10 +27,15 @@ then
 	git checkout "$BRANCH" || exit 2
 	git pull -a
 else
-	SECONDARG=""
+	unset SECONDARG
 fi
 
-docker buildx build --compress --push "$SECONDARG" --platform "$ARCHS" --tag "$IMAGE1" .
-[[ "$?" == "0" ]] && docker buildx build --compress --push "$SECONDARG" --platform "$ARCHS" --tag "$IMAGE2" .
-
+if [[ -n "$SECONDARG" ]]
+then
+	docker buildx build --compress --push "$SECONDARG" --platform "$ARCHS" --tag "$IMAGE1" .
+	[[ "$?" == "0" ]] && docker buildx build --compress --push "$SECONDARG" --platform "$ARCHS" --tag "$IMAGE2" .
+else
+	docker buildx build --compress --push --platform "$ARCHS" --tag "$IMAGE1" .
+	[[ "$?" == "0" ]] && docker buildx build --compress --push --platform "$ARCHS" --tag "$IMAGE2" .
+fi
 echo "Total build time: $(( $(date +%s) - starttime )) seconds"
