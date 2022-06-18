@@ -8,7 +8,7 @@
 APPNAME="$(hostname)/60-start-wg"
 if wg-quick up /config/wg0.conf 2>&1 | stdbuf -o0 sed --unbuffered '/^$/d' | stdbuf -o0 awk '{print "[" strftime("%a %b %e %T %Z %Y", systime()) "]['"$APPNAME"'] " $0}'
 then
-  echo "[$(date)][$APPNAME] WireGuard VPN brought up successfully"
+  echo "[$(date)][$APPNAME] WireGuard VPN brought up."
 else
   echo "[$(date)][$APPNAME] WireGuard VPN failed!"
   echo "[$(date)][$APPNAME] Please check the configuration! Container will exit in 10 seconds."

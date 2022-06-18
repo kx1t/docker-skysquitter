@@ -4,22 +4,24 @@
 # This module makes sure that the Private Key and Preshared Key are set before we
 # configure and start up WireGuard
 
+maxtime=60
 
 APPNAME="$(hostname)/40-save-recv_host-ip"
 
 ip_address="$(ping -c1 ${RECV_HOST} 2>/dev/null | head -1 | awk -F '[()]' '{print $2}')"
 
-if [[ -z "$ip_address" ]]
-then
+starttime="$(date +%s)"
+while [[ -z "$ip_address" ]]
+do
   # wait a bit and try again -- the Beast Source container may not yet be up
-  sleep 10
+  sleep 5
   ip_address="$(ping -c1 ${RECV_HOST} 2>/dev/null | head -1 | awk -F '[()]' '{print $2}')"
-  if [[ -z "$ip_address" ]]
+  if [[ -z "$ip_address" ]] && (( "$(date +%s)" > starttime + maxtime ))
   then
-    echo "[$(date)][${APPNAME}] The IP address for ${RECV_HOST} cannot be resolved. Is your Beast Source system available?"
+    echo "[$(date)][${APPNAME}] The IP address for ${RECV_HOST} cannot be resolved after trying for ${maxtime} seconds. Is your Beast Source system available?"
     exit 1
   fi
-fi
+done
 
 echo ${ip_address} > /run/recv_host_ip
 
