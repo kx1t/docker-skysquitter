@@ -27,7 +27,7 @@ Using the example [`docker-compose.yml`](docker-compose.yml) file, please config
 | `MY_IP`      | Ip address provided by SkySquitter                          |
 
 Note - these variables will be provided to you by SkySquitter. Under specific circumstances, SkySquitter may provide you with a `wg0.conf` file instead,
-that you can install as described in the [Configuration Alternatives](./#configuration-alternatives) section below.
+that you can install as described in the [Configuration Alternatives](#configuration-alternatives) section below.
 
 ### Optional variables:
 Note -- these variables generally do NOT need changing unless you are using a non-standard setup.
@@ -39,7 +39,7 @@ If your ADS-B generating container or host is not `readsb`, please make sure to 
 | `RECV_PORT`       | TCP port on `RECV_HOST` where Beast-format data is available                        | `30005`                  |
 | `DEST_HOST`       | Hostname or IP address of SkySquitter Server                                        | `10.9.2.1`               |
 | `DEST_PORT`       | UDP port on SkySquitter Server to send data to                                      | `11092`                  |
-| `FAILURE_TIMEOUT` | Max for DEST_HOST and RECV_HOST failures before corrective measures are taken (secs)| `150`                    |
+| `FAILURE_TIMEOUT` | Max DEST_HOST and RECV_HOST failure time before corrective measures are taken (secs)| `150`                    |
 | `PRUNE_INTERVAL`  | Interval for log file pruning                                                       | `12h`                    |
 | `PRUNE_SIZE`      | Maximum number of log lines left when pruning log files                             | `1000`                   |
 
