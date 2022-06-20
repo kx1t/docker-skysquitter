@@ -10,6 +10,8 @@ APPNAME="$(hostname)/40-save-recv_host-ip"
 
 ip_address="$(ping -c1 ${RECV_HOST} 2>/dev/null | head -1 | awk -F '[()]' '{print $2}')"
 
+[[ -z "$ip_address" ]] && echo "[$(date)][${APPNAME}] The IP address for ${RECV_HOST} cannot be resolved. We will continue to try up to ${maxtime} seconds." || true
+
 starttime="$(date +%s)"
 while [[ -z "$ip_address" ]]
 do

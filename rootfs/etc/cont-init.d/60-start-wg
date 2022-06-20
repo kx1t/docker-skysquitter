@@ -10,7 +10,7 @@ if wg-quick up /config/wg0.conf 2>&1 | stdbuf -o0 sed --unbuffered '/^$/d' | std
 then
   echo "[$(date)][$APPNAME] WireGuard VPN brought up."
 else
-  echo "[$(date)][$APPNAME] WireGuard VPN failed!"
+  echo "[$(date)][$APPNAME] WireGuard VPN cannot be started!"
   echo "[$(date)][$APPNAME] Please check the configuration! Container will exit in 10 seconds."
   sleep 10
   exit 1
