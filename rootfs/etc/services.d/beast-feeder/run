@@ -20,26 +20,16 @@ then
   RECV_HOST="$(cat /run/recv_host_ip)"
 fi
 
-echo "[$APPNAME][$(date)] Started as an s6 service"
-# sleep 10 # to make she the VPN is up and stable and stopped spamming the logs
-# Initiate some environment variables:
-echo "[$APPNAME][$(date)] Checking the SkySquitter Network..."
-# Now check if we can reach the SkySquitter server:
-while ! timeout --preserve-status 10 ping -c5 "${DEST_HOST}" >/dev/null 2>&1
-do
-  echo "[$APPNAME][$(date)] ${DEST_HOST} is not yet available. Trying again in a bit."
-  sleep 5
-done
-
-echo "[$APPNAME][$(date)] ${DEST_HOST} is available."
-echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
-echo "[$APPNAME][$(date)] Starting the Data Connector..."
+echo "[$(date)][$APPNAME] Started as an s6 service"
+echo "[$(date)][$APPNAME] SkySquitter Container Version: $(cat /.VERSION.docker-skysquitter)"
+echo "[$(date)][$APPNAME] Beast-Feeder Version: $(cat /.VERSION.beast-feeder)"
+echo "[$(date)][$APPNAME] Starting the Data Connector..."
 
 # Now we can start parsing data from SOURCE and pass it to DEST:
 touch /run/lock/beast-feeder.up
 /usr/local/bin/beast-feeder "${RECV_HOST}" "${RECV_PORT}" "${DEST_HOST}" "${DEST_PORT}" 2>&1 \
-     | stdbuf -o0 sed --unbuffered '/^$/d' | stdbuf -o0 awk '{print "['"${APPNAME}"'][" strftime("%a %b %e %T %Z %Y", systime()) "] " $0}'
+     | stdbuf -o0 sed --unbuffered '/^$/d' | stdbuf -o0 awk '{print "[" strftime("%a %b %e %T %Z %Y", systime()) "]['"$APPNAME"'] " $0}'
 rm -rf /run/lock/beast-feeder.up
-echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
-echo "[$APPNAME][$(date)] The Data Connector exited... we will restart in 10 seconds"
+echo "[$(date)][$APPNAME] ---------------------------------------------------------------"
+echo "[$(date)][$APPNAME] The Data Connector exited... we will restart in 10 seconds"
 sleep 10

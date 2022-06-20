@@ -1,5 +1,5 @@
 #!/usr/bin/with-contenv bash
-# shellcheck shell=bash
+# shellcheck shell=bash disable=SC2153
 
 # This module makes sure that the Private Key and Preshared Key are set before we
 # configure and start up WireGuard
@@ -9,11 +9,31 @@ APPNAME="$(hostname)/70-check-beastsource"
 
 rm -f /run/lock/beast-feeder.up
 
+# First see if we can still resolve the ${RECV_HOST}. Reason: if wg0.conf contains DNS settings, then
+# these DNS setting will replace the docker resolution, which means that this container can no longer resolve
+# container names
+
+if [[ "$(timeout --preserve-status 2 ping -c 1 "${RECV_HOST}" >/dev/null 2>&1; echo $?)" == "2" ]]
+then
+  # Exit code 2 for ping means that the domain name couldn't be resolved
+  echo "[$(date)][$APPNAME] Name resolution for ${RECV_HOST} is no longer available. Falling back to using IP $(cat /run/recv_host_ip)"
+  RECV_HOST="$(cat /run/recv_host_ip)"
+else
+  # we don't need the IP address cache anymore
+  rm -f /run/recv_host_ip
+fi
+
+starttime="$(date +%s)"
+[[ -z "$FAILURE_TIMEOUT" ]] && maxwait=60 || maxwait="$FAILURE_TIMEOUT"
 while [[ $(timeout --preserve-status 5 netcat -z -v "${RECV_HOST}" "${RECV_PORT}" 2>/dev/null ; echo $?) != "0" ]]
 do
-  echo "[$APPNAME][$(date)] ${RECV_HOST}:${RECV_PORT} is not yet available. Trying again in a bit."
-  sleep 5
+  if (( "$(date +%s)" > starttime + maxwait ))
+  then
+    echo "[$(date)][$APPNAME] ${RECV_HOST}:${RECV_PORT} couldn't be reached for $maxwait seconds. Terminating this container."
+    exit 1
+  else
+    echo "[$(date)][$APPNAME] ${RECV_HOST}:${RECV_PORT} is not yet available; $(("$(date +%s)" - starttime)) of ${maxwait} seconds elapsed. Trying again in a bit."
+    sleep 5
+  fi
 done
-
-#ip_address="$(ping -c1 ${RECV_HOST} | head -1 | awk -F '[()]' '{print $2}')"
-#echo ${ip_address} > /run/recv_host_ip
+echo "[$(date)][$APPNAME] ${RECV_HOST}:${RECV_PORT} is now available -- your Beast Data source is ready"

@@ -4,13 +4,13 @@
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:python
 
 # Preset a number of ENV variables as fall back when not defined at runtime:
-ENV START_DELAY=0
-ENV LOGGING=false
 ENV RECV_HOST=readsb
 ENV RECV_PORT=30005
-ENV RECV_TIMEOUT=60
 ENV DEST_HOST=10.9.2.1
 ENV DEST_PORT=11092
+ENV FAILURE_TIMEOUT=150
+ENV PRUNE_INTERVAL=12h
+ENV PRUNE_SIZE=1000
 
 # hadolint ignore=SC2115,SC3054
 RUN set -x && \
@@ -41,6 +41,7 @@ RUN set -x && \
    mkdir /git && \
    git clone --depth 1 https://github.com/skysquitter22/beast-feeder /git && \
    cp /git/beast-feeder.py /usr/local/bin/beast-feeder && \
+   cp /git/.VERSION.beast-feeder / || : && \
    chmod a+x /usr/local/bin/beast-feeder && \
 #
 # Clean up

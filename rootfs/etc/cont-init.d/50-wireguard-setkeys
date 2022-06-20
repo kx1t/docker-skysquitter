@@ -16,7 +16,7 @@ read -r teststring < /config/wg0.conf
 if [[ "${teststring:0:14}" != "# wg0 template" ]]
 then
   # dont use the template as it has been replaced
-  echo "[$APPNAME][$(date)] Using custom uploaded wg0.conf file - ignoring environment variables"
+  echo "[$(date)][$APPNAME] Using custom uploaded wg0.conf file - ignoring environment variables"
   TEMPLATE=false
 else
   # Check if a bunch of variables are available:

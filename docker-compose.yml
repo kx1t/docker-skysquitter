@@ -14,7 +14,7 @@ services:
       - WG_PRIVKEY=${SSQ_WG_PRIVKEY}
       - WG_PSK=${SSQ_WG_PSK}
       - RECV_HOST=readsb
-      - MY_IP=10.9.2.4
+      - MY_IP=10.9.2.xx
     volumes:
       - /opt/adsb/skysquitter:/config
       - /lib/modules:/lib/modules
@@ -26,14 +26,16 @@ services:
     depends_on:
       - readsb
 
+# The following readsb section is provided for reference only. If you use a containerized setup,
+# you should already have a corresponding section in your existing docker-compose.yml.
+# If you are feeding from software on the host or another machine, replace RECV_HOST in the SkySquitter section above
+# with the IP address of that machine. IT SHOULD NEVER BE SET TO 127.0.0.1 or "localhost" !
   readsb:
     image: ghcr.io/sdr-enthusiasts/docker-readsb-protobuf
     tty: true
     container_name: readsb
     hostname: readsb
     restart: always
-    ports:
-      - 30105:30105
     environment:
       - TZ=America/New_York
       - DISABLE_PERFORMANCE_GRAPHS=true
@@ -41,7 +43,6 @@ services:
       - READSB_NET_ENABLE=true
       - READSB_NET_ONLY=true
       - READSB_FORWARD_MLAT=true
-      - READSB_NET_CONNECTOR=10.244.10.168,30005,beast_in
       - READSB_NET_BEAST_OUTPUT_PORT=30005
     tmpfs:
       - /run/readsb

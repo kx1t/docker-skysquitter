@@ -14,7 +14,9 @@ SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd)/$(basename "$0")"
 trap 'echo -e "[ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAND"' ERR
 
 APPNAME="$(hostname)/ssq-watchdog"
-echo "[$APPNAME][$(date)] Started as an s6 service"
+echo "[$(date)][$APPNAME] Started as an s6 service"
+
+[[ -z "$FAILURE_TIMEOUT" ]] && MAXWAIT=60 || MAXWAIT="$FAILURE_TIMEOUT"
 
 # make sure the log file exists so we can `tail` it later
 touch /var/log/feeder-watchdog.log
@@ -36,73 +38,70 @@ fix_feeder ()
   sleep 10
 
   # check if data is flowing again:
-   [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -p -i wg0 udp port "${DEST_PORT}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]] && return 0 || return 1
+   [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -p -i wg0 udp port "${DEST_PORT}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]] && return 1 || return 0
 }
 
 [[ -z "$WATCHDOG_MAX_FAILURES" ]] && WATCHDOG_MAX_FAILURES=10 || true
-PING_FAILURE_COUNT=0
-TCPD_FAILURE_COUNT=0
+PING_FAILURE_FIRSTTIME="$(date +%s)"
+PING_FAILED=false
+TCPD_FAILURE_FIRSTTIME="$(date +%s)"
+TCPD_FAILED=false
+
 while :
 do
-  if [[ -f /run/lock/beast-feeder.up ]]
-  then
     # check if pings work:
     if ! ping -c5 "${DEST_HOST}" >/dev/null 2>&1
     then
-      (( PING_FAILURE_COUNT++ )) || true
-      if (( PING_FAILURE_COUNT > WATCHDOG_MAX_FAILURES ))
+      PING_FAILURE_LASTTIME="$(date +%s)"
+      if (( PING_FAILURE_LASTTIME - PING_FAILURE_FIRSTTIME > MAXWAIT ))
       then
-        echo "[$APPNAME][$(date)] Ping Failure: cannot reach ${DEST_HOST} -- Maximum Failure Count of ${WATCHDOG_MAX_FAILURES} exceeded." | tee -a /var/log/feeder-watchdog.log
-        echo "[$APPNAME][$(date)] Ping Failure: Trying to fix the VPN connection..." | tee -a /var/log/feeder-watchdog.log
+        echo "[$(date)][$APPNAME] Ping Failure: cannot reach ${DEST_HOST} -- Maximum Failure Time of ${MAXWAIT} seconds exceeded." | tee -a /var/log/feeder-watchdog.log
+        echo "[$(date)][$APPNAME] Ping Failure: Performing last-ditch effort to fix the VPN connection..." | tee -a /var/log/feeder-watchdog.log
         if ! fix_wg "${DEST_HOST}"
         then
-          echo "[$APPNAME][$(date)] Ping Failure: VPN fix attempt failed. Shutting down the container to auto-restart..." | tee -a /var/log/feeder-watchdog.log
+          echo "[$(date)][$APPNAME] Ping Failure: VPN fix attempt failed. Shutting down the container to auto-restart..." | tee -a /var/log/feeder-watchdog.log
           s6-svscanctl -t /var/run/s6/services
         else
-          echo "[$APPNAME][$(date)] Ping Failure Resolved: VPN fix attempt succeeded!" | tee -a /var/log/feeder-watchdog.log
-          PING_FAILURE_COUNT=0
+          echo "[$(date)][$APPNAME] Ping Failure Resolved: VPN fix attempt succeeded!" | tee -a /var/log/feeder-watchdog.log
+          PING_FAILURE_FIRSTTIME="$(date +%s)"
+          PING_FAILED=false
         fi
       else
-        echo "[$APPNAME][$(date)] Ping Failure: cannot reach ${DEST_HOST} -- Failure ${PING_FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES}." | tee -a /var/log/feeder-watchdog.log
+        (( "$(date +%s)" - PING_FAILURE_FIRSTTIME > MAXWAIT / 2 )) && echo "[$(date)][$APPNAME] Ping Failure: cannot reach ${DEST_HOST} -- Failed for $(("$(date +%s)" - PING_FAILURE_FIRSTTIME)) seconds; Maximum Failure Time is ${MAXWAIT} seconds." | tee -a /var/log/feeder-watchdog.log
+        PING_FAILED=true
       fi
     else
-      (( PING_FAILURE_COUNT > 0 )) && echo "[$APPNAME][$(date)] Ping Failure Resolved: ${DEST_HOST} can be reached again."  | tee -a /var/log/feeder-watchdog.log || true
-      PING_FAILURE_COUNT=0
+      [[ "$PING_FAILED" == "true" ]] && echo "[$(date)][$APPNAME] Ping Failure Resolved: ${DEST_HOST} can be reached again."  | tee -a /var/log/feeder-watchdog.log || true
+      PING_FAILURE_FIRSTTIME="$(date +%s)"
+      PING_FAILED=false
     fi
 
     # check if data is flowing
+
     if [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -p -i wg0 udp port "${DEST_PORT}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]]
     then
-      (( TCPD_FAILURE_COUNT++ )) || true
-      if (( TCPD_FAILURE_COUNT > WATCHDOG_MAX_FAILURES ))
+      TCPD_FAILURE_LASTTIME="$(date +%s)"
+      if (( TCPD_FAILURE_LASTTIME - TCPD_FAILURE_FIRSTTIME > MAXWAIT ))
       then
-        echo "[$APPNAME][$(date)] DataFlow Failure: No data is flowing to UDP port ${DEST_PORT}-- Maximum Failure Count of ${WATCHDOG_MAX_FAILURES} exceeded." | tee -a /var/log/feeder-watchdog.log
-        echo "[$APPNAME][$(date)] DataFlow Failure: Performing last-ditch effort to restart the feeder..." | tee -a /var/log/feeder-watchdog.log
+        echo "[$(date)][$APPNAME] DataFlow Failure: No data is flowing to UDP port ${DEST_PORT} -- Maximum Failure Time of ${MAXWAIT} seconds exceeded." | tee -a /var/log/feeder-watchdog.log
+        echo "[$(date)][$APPNAME] DataFlow Failure: Performing last-ditch effort to restart the feeder..." | tee -a /var/log/feeder-watchdog.log
         if ! fix_feeder
         then
-          echo "[$APPNAME][$(date)] DataFlow Failure: Last-ditch effort failed. Shutting down the container to auto-restart..." | tee -a /var/log/feeder-watchdog.log
+          echo "[$(date)][$APPNAME] DataFlow Failure: Last-ditch effort failed. Shutting down the container to auto-restart..." | tee -a /var/log/feeder-watchdog.log
           s6-svscanctl -t /var/run/s6/services
         else
-          echo "[$APPNAME][$(date)] DataFlow Failure: Last-ditch effort succeeded. Data is f flowing again!" | tee -a /var/log/feeder-watchdog.log
-          TCPD_FAILURE_COUNT=0
+          echo "[$(date)][$APPNAME] DataFlow Failure: Last-ditch effort succeeded. Data is flowing again!" | tee -a /var/log/feeder-watchdog.log
+          TCPD_FAILURE_FIRSTTIME="$(date +%s)"
+          TCPD_FAILED=false
        fi
       else
-        echo "[$APPNAME][$(date)] DataFlow Failure: No data is flowing to UDP port ${DEST_PORT} -- Failure count ${TCPD_FAILURE_COUNT} of max. ${WATCHDOG_MAX_FAILURES} allowed failures." | tee -a /var/log/feeder-watchdog.log
+        (( TCPD_FAILURE_LASTTIME - TCPD_FAILURE_FIRSTTIME > MAXWAIT / 2 )) && echo "[$(date)][$APPNAME] DataFlow Failure: No data is flowing to UDP port ${DEST_PORT} -- Failed for $(("$(date +%s)" - TCPD_FAILURE_FIRSTTIME)) seconds; Maximum Failure Time is ${MAXWAIT} seconds.." | tee -a /var/log/feeder-watchdog.log
+        TCPD_FAILED=true
       fi
     else
-      (( TCPD_FAILURE_COUNT > 0 )) && echo "[$APPNAME][$(date)] DataFlow Failure Resolved: Data is flowing again to UDP port ${DEST_PORT}."  | tee -a /var/log/feeder-watchdog.log || true
-      TCPD_FAILURE_COUNT=0
+      [[ "$TCPD_FAILED" == "true" ]] && echo "[$(date)][$APPNAME] DataFlow Failure Resolved: Data is flowing again to UDP port ${DEST_PORT}."  | tee -a /var/log/feeder-watchdog.log || true
+      TCPD_FAILURE_FIRSTTIME="$(date +%s)"
+      TCPD_FAILED=false
     fi
 
-  else
-    PING_FAILURE_COUNT=0
-    TCPD_FAILURE_COUNT=0
-  fi
-
-  # limit the logs to max 1000 lines:
-  tail -n 1000 /var/log/feeder-watchdog.log > /tmp/wdlog.tmp
-  mv /tmp/wdlog.tmp /var/log/feeder-watchdog.log
-
-  # sleep a bit before we repeat the whole thing again:
-  sleep 10
 done
