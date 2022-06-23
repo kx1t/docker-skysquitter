@@ -31,7 +31,20 @@ then
   exit 0
 fi
 
-mv -f "$tmpfile" /usr/local/bin/beast-feeder.py
-chmod a+x /usr/local/bin/beast-feeder.py
+# One more check:
+teststring="$(head -1 "$tmpfile")"
+teststring="${teststring:0:2}"
+
+if [[ "${teststring:0:2}" != "#!" ]]
+then
+  echo "[$(date)][$APPNAME] Error: cannot download $BEASTDEV:"
+  echo "[$(date)][$APPNAME] Download attempt resulted in \"$(head -1 "$tmpfile")\""
+  echo "[$(date)][$APPNAME] We will use the production beast-feeder.py instead."
+  rm -f "$tmpfile"
+  exit 0
+fi
+
+mv -f "$tmpfile" /usr/local/bin/beast-feeder
+chmod a+x /usr/local/bin/beast-feeder
 
 echo "[$(date)][$APPNAME] DEVELOPMENT USE: Replaced beast-feeder.py with the one from $BEASTDEV"
