@@ -24,7 +24,7 @@ tmpfile="$(mktemp)"
 if ! curl -sL "$BEASTDEV" > "$tmpfile"
 then
   # something went wrong
-  ERRORSTRING="$(curl -sL "$BEASTDEV" -I | head -1 | tr -cd '[:print:]')"
+  ERRORSTRING="$(curl -sLf "$BEASTDEV" -I | head -1 | tr -cd '[:print:]')"
   echo "[$(date)][$APPNAME] Error: cannot download $BEASTDEV:"
   echo "[$(date)][$APPNAME] Download attempt resulted in \"$ERRORSTRING\"."
   echo "[$(date)][$APPNAME] We will use the production beast-feeder.py instead."
