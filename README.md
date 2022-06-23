@@ -42,7 +42,7 @@ If your ADS-B generating container or host is not `readsb`, please make sure to 
 | `FAILURE_TIMEOUT` | Max DEST_HOST and RECV_HOST failure time before corrective measures are taken (secs)| `150`                    |
 | `PRUNE_INTERVAL`  | Interval for log file pruning                                                       | `12h`                    |
 | `PRUNE_SIZE`      | Maximum number of log lines left when pruning log files                             | `1000`                   |
-| `BEASTDEV`.       | If defined, download the latest `beast-feeder.py` from the dev branch of the [skysquitter22/beast-feeder](https://github.com/skysquitter22/beast-feeder) repo. You can also define a different repo by putting the `raw` URL of the beast-feeder.py file as value to this parameter. | (not defined) |
+| `BEASTDEV`        | If defined, download the latest `beast-feeder.py` from the dev branch of the [skysquitter22/beast-feeder](https://github.com/skysquitter22/beast-feeder) repo. You can also define a different repo by putting the `raw` URL of the beast-feeder.py file as value to this parameter. | (not defined) |
 
 ## How do I know if things work?
 There are several ways to figure out if things are working.
