@@ -40,7 +40,7 @@ fix_wg ()
 
 fix_feeder ()
 { # bring down the feeder Python app:
-  pkill beast-feeder
+  pkill -f "python3 /usr/local/bin/beast-feeder"
   sleep 10
 
   # check if data is flowing again:
