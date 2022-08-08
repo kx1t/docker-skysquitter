@@ -11,7 +11,7 @@
 exec 2>&1
 # all errors will show a line number and the command used to produce the error
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd)/$(basename "$0")"
-trap 'echo -e "[ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAND"' ERR
+trap 'echo -e "[$(date)][$APPNAME][ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAND returned ${?}"' ERR
 trap term_wg  SIGTERM SIGINT
 
 APPNAME="$(hostname)/ssq-watchdog"
@@ -24,7 +24,11 @@ touch /var/log/feeder-watchdog.log
 
 term_wg ()
 { # function to trap SIGINT and SIGTERM to bring WG down upon exit
+  pkill -SIGTERM -f "python3 /usr/local/bin/beast-feeder"
   wg-quick down /config/wg0.conf
+  s6-svscanctl -bq /var/run/s6/services || true
+  echo "[$(date)][$APPNAME] Brought down the container."
+  exit 99
 }
 
 fix_wg ()
@@ -40,7 +44,7 @@ fix_wg ()
 
 fix_feeder ()
 { # bring down the feeder Python app:
-  pkill -f "python3 /usr/local/bin/beast-feeder"
+  pkill -SIGTERM -f "python3 /usr/local/bin/beast-feeder"
   sleep 10
 
   # check if data is flowing again:
@@ -67,7 +71,7 @@ do
         then
           echo "[$(date)][$APPNAME] Ping Failure: VPN fix attempt failed. Shutting down the container to auto-restart..." | tee -a /var/log/feeder-watchdog.log
           wg-quick down /config/wg0.conf
-          s6-svscanctl -bq /var/run/s6/services
+          s6-svscanctl -bq /var/run/s6/services || true
           sleep infinity
           #/etc/s6/init/init-stage3
         else
