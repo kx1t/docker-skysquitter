@@ -68,6 +68,7 @@ do
           echo "[$(date)][$APPNAME] Ping Failure: VPN fix attempt failed. Shutting down the container to auto-restart..." | tee -a /var/log/feeder-watchdog.log
           wg-quick down /config/wg0.conf
           s6-svscanctl -bq /var/run/s6/services
+          sleep infinity
           #/etc/s6/init/init-stage3
         else
           echo "[$(date)][$APPNAME] Ping Failure Resolved: VPN fix attempt succeeded!" | tee -a /var/log/feeder-watchdog.log
@@ -98,6 +99,7 @@ do
           echo "[$(date)][$APPNAME] DataFlow Failure: Last-ditch effort failed. Shutting down the container to auto-restart..." | tee -a /var/log/feeder-watchdog.log
           wg-quick down /config/wg0.conf
           s6-svscanctl -bq /var/run/s6/services
+          sleep infinity
           #/etc/s6/init/init-stage3
         else
           echo "[$(date)][$APPNAME] DataFlow Failure: Last-ditch effort succeeded. Data is flowing again!" | tee -a /var/log/feeder-watchdog.log
