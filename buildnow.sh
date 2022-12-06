@@ -22,7 +22,7 @@ read
 
 starttime="$(date +%s)"
 # rebuild the container
-if [[ "${SECONDARG,,}" != "nopull" ]]
+if [[ -n "${SECONDARG}" ]] && [[ "${SECONDARG,,}" != "nopull" ]]
 then
 	git checkout "$BRANCH" || exit 2
 	git pull -a
