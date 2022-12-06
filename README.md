@@ -2,7 +2,7 @@
  a Docker container to feed SkySquitter with Beast data
 
 ## What is it?
-SkySquitter collects ADS-B data from feeders like dump1090/dump1090-fa/readsb/tar1090 and creates a weather map based on this. The service is experimental. More information is available at https://www.skysquitter.com/
+SkySquitter collects ADS-B data from feeders like dump1090/dump1090-fa/readsb/tar1090 and creates a weather map based on this. The service is experimental. More information is available at [https://www.skysquitter.com](https://www.skysquitter.com).
 
 ## Feeding SkySquitter
 **Skysquitter uses crowd-sourced data on a very limited, invitation-only basis. If you think you would like to contribute, please contact info@SkySquitter.com.**
@@ -14,6 +14,7 @@ This is done using a small Java application that converts data retrieved via a T
 The data is sent securely via a WireGuard VPN that is also part of the container. The VPN is set up in such a way that the SkySquitter Service has access to the data from the SkySquitter container, but not to any other container in your stack.
 
 Configuration of SkySquitter has the following prerequisites:
+
 - a Linux machine (PC, Raspberry Pi, etc.) with a functioning Docker configuration. See [here](https://github/com/sdr-enthusiasts/docker-install) for some help on how to get this done quickly.
 - we strongly recommend using `docker-compose` to manage your container
 
@@ -69,13 +70,14 @@ In some circumstances, SkySquitter may ask you to install a special "`wg0.conf`"
 In that case, some of the environment variables from `docker-compose.yml` will be ignored by the container.
 
 To install this `wg0.conf` file:
+
 1. Go to the directory where your `docker-compose.yml` file is located. If you use the default values, you can do `cd /opt/adsb`
 2. Initialize the container with `docker-compose up -d` - this will ensure that the mapped volume `/opt/adsb/skysquitter` is created and linked to the container.
 3. Immediately stop the container again with `docker-compose stop ssq`
 4. Copy the `wg0.conf` file into place. If the file is in the home directory of your local machine, you can do this with `sudo cp ~/wg0.conf /opt/adsb/skysquitter`
 5. Restart the container stack with `docker-compose up -d`
 
-# OWNERSHIP AND LICENSE
+## OWNERSHIP AND LICENSE
 SkySquitter is owned by, and copyright by SkySquitter. All rights reserved.
 Contact info@SkySquitter.com for more information.
 
