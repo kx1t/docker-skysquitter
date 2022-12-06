@@ -24,7 +24,7 @@ MAX_ERROR_COUNT=5
 
 
 lastlog=$(($(date +%s) - LOGINTERVAL - 1))
-errorcount=0
+errorcount=5
 
 echo "$(date +%s)000,99999,99999,\"clockdiff not yet available\"" > "${RUNFILE}"
 
@@ -38,13 +38,13 @@ do
     if grep -i "command not found" <<< "${timediff}" >/dev/null 2>&1
     then
         echo "${lastchecked},99999,99999,\"clockdiff cmd not installed\"" > "${RUNFILE}"
-        echo "[$(date)][$APPNAME] Stopped clockdiff-server: clockdiff not installed"
+        echo "[$(date)][$APPNAME] FATAL: Stopped clockdiff-server: clockdiff not installed"
         sleep infinity
     fi
     if grep -i "nice: Operation not permitted" <<< "${timediff}" >/dev/null 2>&1
     then
         echo "${lastchecked},99999,99999,\"NICE capability not available in container\"" > "${RUNFILE}"
-        echo "[$(date)][$APPNAME] Stopped clockdiff-server: NICE capability not available in container"
+        echo "[$(date)][$APPNAME] FATAL: topped clockdiff-server: NICE capability not available in container"
         sleep infinity
     fi
     if grep -i "Name or service not known" <<< "${timediff}" >/dev/null 2>&1
@@ -53,7 +53,7 @@ do
         (( errorcount++ ))
         if (( errorcount > MAX_ERROR_COUNT ))
         then
-            echo "[$(date)][$APPNAME] Temporary issue resolving NTP server ${NTP_REFSERVER}"
+            echo "[$(date)][$APPNAME] WARNNG: Temporary issue resolving NTP server ${NTP_REFSERVER}"
             errorcount=0
         fi
         continue
@@ -64,7 +64,7 @@ do
         (( errorcount++ ))
         if (( errorcount > MAX_ERROR_COUNT ))
         then
-            echo "[$(date)][$APPNAME] Temporary issue connecting to NTP server ${NTP_REFSERVER} (reported down)"
+            echo "[$(date)][$APPNAME] WARNING: Temporary issue connecting to NTP server ${NTP_REFSERVER} (reported down)"
             errorcount=0
         fi
         continue
