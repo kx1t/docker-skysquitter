@@ -58,9 +58,10 @@ do
     if [ -z "${x##*[!0-9]*}" ]
     then
         echo "${lastchecked},99999,99999,\"Error: ${timediff}\"" > "${RUNFILE}"
+        continue
     fi
 
     # if we are here, then we can print the clockdiff values
     printf "%s,%s,%s,\"\"" "$(awk '{print $1}' <<< "${timediff}")" "$(awk '{print $2}' <<< "${timediff}")" "$(awk '{print $3}' <<< "${timediff}")" > "${RUNFILE}"
-
+    echo "[$(date)][$APPNAME] Clock drift: $(awk '{print $2}' <<< "${timediff}") msec/$(awk '{print $3}' <<< "${timediff}") msec"
 done
