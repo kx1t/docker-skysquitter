@@ -20,14 +20,31 @@ then
   RECV_HOST="$(cat /run/recv_host_ip)"
 fi
 
+SET_TIMESTAMP="${SET_TIMESTAMP,,}"
+if [[ "$SET_TIMESTAMP" == "true" ]] || [[ "$SET_TIMESTAMP" == "on" ]] || [[ "$SET_TIMESTAMP" == "enabled" ]]
+then
+    SET_TIMESTAMP="TRUE"
+else
+    SET_TIMESTAMP=""
+fi
+
+BEAST_FEEDER_COMMAND=()
+BEAST_FEEDER_COMMAND+=("/usr/local/bin/beast-feeder")
+BEAST_FEEDER_COMMAND+=("${RECV_HOST}")
+BEAST_FEEDER_COMMAND+=("${RECV_PORT}")
+BEAST_FEEDER_COMMAND+=("${DEST_HOST}")
+BEAST_FEEDER_COMMAND+=("${DEST_PORT}")
+BEAST_FEEDER_COMMAND+=("${SET_TIMESTAMP}")
+
 echo "[$(date)][$APPNAME] Started as an s6 service"
 echo "[$(date)][$APPNAME] SkySquitter Container Version: $(cat /.VERSION.docker-skysquitter)"
 echo "[$(date)][$APPNAME] Beast-Feeder Version: $(cat /.VERSION.beast-feeder)"
-echo "[$(date)][$APPNAME] Starting the Data Connector..."
+echo "[$(date)][$APPNAME] Starting the Data Connector with the following commandline:"
+echo "[$(date)][$APPNAME] ${BEAST_FEEDER_COMMAND[*]}"
 
 # Now we can start parsing data from SOURCE and pass it to DEST:
 touch /run/lock/beast-feeder.up
-/usr/local/bin/beast-feeder "${RECV_HOST}" "${RECV_PORT}" "${DEST_HOST}" "${DEST_PORT}" 2>&1 \
+"${BEAST_FEEDER_COMMAND[@]}" 2>&1 \
      | stdbuf -o0 sed --unbuffered '/^$/d' | stdbuf -o0 awk '{print "[" strftime("%a %b %e %T %Z %Y", systime()) "]['"$APPNAME"'] " $0}'
 rm -rf /run/lock/beast-feeder.up
 echo "[$(date)][$APPNAME] ---------------------------------------------------------------"

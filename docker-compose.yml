@@ -15,6 +15,7 @@ services:
       - WG_PSK=${SSQ_WG_PSK}
       - RECV_HOST=readsb
       - MY_IP=10.9.2.xx
+      - SET_TIMESTAMP=false
     volumes:
       - /opt/adsb/skysquitter:/config
       - /lib/modules:/lib/modules
