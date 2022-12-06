@@ -1,0 +1,11 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash disable=SC2004
+
+RUNFILE="/run/clockdiff.status"
+
+if [[ -f ${RUNFILE} ]]
+then
+    cat "${RUNFILE}"
+else
+    echo "$(date +%s)000,99999,99999,\"clockdiff not yet available\""
+fi

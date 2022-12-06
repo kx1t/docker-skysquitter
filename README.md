@@ -46,6 +46,17 @@ If your ADS-B generating container or host is not `readsb`, please make sure to 
 | `BEASTDEV`        | If defined, download the latest `beast-feeder.py` from the dev branch of the [skysquitter22/beast-feeder](https://github.com/skysquitter22/beast-feeder) repo. You can also define a different repo by putting the `raw` URL of the beast-feeder.py file as value to this parameter. | (not defined) |
 | `SET_TIMESTAMP`   | If set to TRUE/ON/ENABLED, the system will send timestamped data to the server. Note -- please only enable this if your system clock is GPS or NTP enabled and your container time is set to UTC | (not defined) |
 
+## Mandatory Container Capabilities and System Controls
+Make sure to add the following capabilities and system controls to your Docker Container. See docker-compose.yml for an example. These are mandatory for the container to work properly:
+```
+cap_add:
+  - NET_ADMIN
+  - SYS_MODULE
+  - SYS_NICE
+sysctls:
+  - net.ipv4.conf.all.src_valid_mark=1
+```
+
 ## How do I know if things work?
 There are several ways to figure out if things are working.
 Note - in the commands below, we are assuming that your SkySquitter container is named `ssq`. If you named it differently, please adapt the command accordingly.
