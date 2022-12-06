@@ -33,6 +33,7 @@ do
     lastchecked="$(date +%s)000"
     timediff="$(clockdiff $NTP_REFSERVER 2>&1)"
     sleep $SLEEPTIME
+
     # capture a few errors
     if grep -i "command not found" <<< "${timediff}" >/dev/null 2>&1
     then
@@ -72,10 +73,11 @@ do
     x="$(awk '{print $1}' <<< "${timediff}")"
     if [ -z "${x##*[!0-9]*}" ]
     then
+        echo "${lastchecked},99999,99999,\"Error: ${timediff}\"" > "${RUNFILE}"
         (( errorcount++ ))
         if (( errorcount > MAX_ERROR_COUNT ))
         then
-            echo "${lastchecked},99999,99999,\"Error: ${timediff}\"" > "${RUNFILE}"
+            echo "[$(date)][$APPNAME] Error: ${timediff}"
             errorcount=0
         fi
         continue
