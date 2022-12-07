@@ -84,8 +84,7 @@ do
     fi
 
     # if we are here, then we can print the clockdiff values
-    printf "%s000,%s,%s,\"\"\n" "$(awk '{print $1}' <<< 
-"${timediff}")" "$(awk '{print $2}' <<< "${timediff}")" "$(awk '{print $3}' <<< "${timediff}")" > "${RUNFILE}"
+    printf "%s000,%s,%s,\"\"\n" "$(awk '{print $1}' <<< "${timediff}")" "$(awk '{print $2}' <<< "${timediff}")" "$(awk '{print $3}' <<< "${timediff}")" > "${RUNFILE}"
     errorcount=0
     # Be less verbose in logging
     if (( lastlog + LOGINTERVAL < $(date +%s) ))
