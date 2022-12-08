@@ -21,7 +21,7 @@ RUNFILE="/run/clockdiff.status"
 
 
 [[ -n "$VERBOSELOGS" ]] && VERBOSELOGS="${VERBOSELOGS,,}" || true
-if [[ "$SVERBOSELOGS" == "true" ]] || [[ "$VERBOSELOGS" == "on" ]] || [[ "$VERBOSELOGS" == "enabled" ]]
+if [[ "$VERBOSELOGS" == "true" ]] || [[ "$VERBOSELOGS" == "on" ]] || [[ "$VERBOSELOGS" == "enabled" ]]
 then
     VERBOSELOGS="TRUE"
 else
