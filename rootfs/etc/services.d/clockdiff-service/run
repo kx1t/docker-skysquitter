@@ -22,6 +22,14 @@ RUNFILE="/run/clockdiff.status"
 LOGINTERVAL=3600
 MAX_ERROR_COUNT=5
 
+[[ -n "$VERBOSELOGS" ]] && VERBOSELOGS="${VERBOSELOGS,,}" || true
+if [[ "$SVERBOSELOGS" == "true" ]] || [[ "$VERBOSELOGS" == "on" ]] || [[ "$VERBOSELOGS" == "enabled" ]]
+then
+    VERBOSELOGS="TRUE"
+else
+    VERBOSELOGS=""
+fi
+
 
 lastlog=$(($(date +%s) - LOGINTERVAL - 1))
 errorcount=5
@@ -30,9 +38,10 @@ echo "$(date +%s)000,99999,99999,\"clockdiff not yet available\"" > "${RUNFILE}"
 
 while true
 do
+    sleep $SLEEPTIME
     lastchecked="$(date +%s)000"
     timediff="$(clockdiff $NTP_REFSERVER 2>&1)"
-    sleep $SLEEPTIME
+
 
     # capture a few errors
     if grep -i "command not found" <<< "${timediff}" >/dev/null 2>&1
@@ -51,9 +60,9 @@ do
     then
         echo "${lastchecked},99999,99999,\"Cannot resolve NTP server ${NTP_REFSERVER}\"" > "${RUNFILE}"
         (( errorcount++ ))
-        if (( errorcount > MAX_ERROR_COUNT ))
+        if (( errorcount > MAX_ERROR_COUNT )) && [[ -n "$VERBOSELOGS" ]]
         then
-            echo "[$(date)][$APPNAME] WARNNG: Temporary issue resolving NTP server ${NTP_REFSERVER}"
+            echo "[$(date)][$APPNAME] WARNING: Temporary issue resolving NTP server ${NTP_REFSERVER}"
             errorcount=0
         fi
         continue
@@ -62,7 +71,7 @@ do
     if grep -i "is down" <<< "${timediff}" >/dev/null 2>&1
     then
         (( errorcount++ ))
-        if (( errorcount > MAX_ERROR_COUNT ))
+        if (( errorcount > MAX_ERROR_COUNT )) && [[ -n "$VERBOSELOGS" ]]
         then
             echo "[$(date)][$APPNAME] WARNING: Temporary issue connecting to NTP server ${NTP_REFSERVER} (reported down)"
             errorcount=0
@@ -75,7 +84,7 @@ do
     then
         echo "${lastchecked},99999,99999,\"Error: ${timediff}\"" > "${RUNFILE}"
         (( errorcount++ ))
-        if (( errorcount > MAX_ERROR_COUNT ))
+        if (( errorcount > MAX_ERROR_COUNT )) && [[ -n "$VERBOSELOGS" ]]
         then
             echo "[$(date)][$APPNAME] Error: ${timediff}"
             errorcount=0

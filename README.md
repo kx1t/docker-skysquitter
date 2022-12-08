@@ -45,9 +45,9 @@ If your ADS-B generating container or host is not `readsb`, please make sure to 
 | `PRUNE_SIZE`      | Maximum number of log lines left when pruning log files                             | `1000`                   |
 | `BEASTDEV`        | If defined, download the latest `beast-feeder.py` from the dev branch of the [skysquitter22/beast-feeder](https://github.com/skysquitter22/beast-feeder) repo. You can also define a different repo by putting the `raw` URL of the beast-feeder.py file as value to this parameter. | (not defined) |
 | `SET_TIMESTAMP`   | If set to TRUE/ON/ENABLED, the system will send timestamped data to the server. Note -- please only enable this if your system clock is GPS or NTP enabled and your container time is set to UTC | (not defined) |
-| `NTP_REFSERVER`   | Domain name of a NTP server that will 
-be used to calculate the system's clock drift | 
+| `NTP_REFSERVER`   | Domain name of a NTP server that will be used to calculate the system's clock drift |
 `pool.ntp.org` |
+| `VERBOSELOGS` | If set to TRUE/ON/ENABLED, it will show more verbose logging information in the Docker Logs. | Off |
 
 ## Mandatory Container Capabilities and System Controls
 Make sure to add the following capabilities and system controls to your Docker Container. See docker-compose.yml for an example. These are mandatory for the container to work properly:

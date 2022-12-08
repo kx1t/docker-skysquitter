@@ -15,12 +15,20 @@ trap 'echo -e "[ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAN
 
 APPNAME="$(hostname)/ssq-feeder"
 
+[[ -n "$VERBOSELOGS" ]] && VERBOSELOGS="${VERBOSELOGS,,}" || true
+if [[ "$SVERBOSELOGS" == "true" ]] || [[ "$VERBOSELOGS" == "on" ]] || [[ "$VERBOSELOGS" == "enabled" ]]
+then
+    VERBOSELOGS="TRUE"
+else
+    VERBOSELOGS=""
+fi
+
 if [[ -f /run/recv_host_ip ]]
 then
   RECV_HOST="$(cat /run/recv_host_ip)"
 fi
 
-SET_TIMESTAMP="${SET_TIMESTAMP,,}"
+[[ -n "$SET_TIMESTAMP" ]] && SET_TIMESTAMP="${SET_TIMESTAMP,,}" || true
 if [[ "$SET_TIMESTAMP" == "true" ]] || [[ "$SET_TIMESTAMP" == "on" ]] || [[ "$SET_TIMESTAMP" == "enabled" ]]
 then
     SET_TIMESTAMP="TRUE"
@@ -37,10 +45,10 @@ BEAST_FEEDER_COMMAND+=("${DEST_PORT}")
 BEAST_FEEDER_COMMAND+=("${SET_TIMESTAMP}")
 
 echo "[$(date)][$APPNAME] Started as an s6 service"
-echo "[$(date)][$APPNAME] SkySquitter Container Version: $(cat /.VERSION.docker-skysquitter)"
-echo "[$(date)][$APPNAME] Beast-Feeder Version: $(cat /.VERSION.beast-feeder)"
-echo "[$(date)][$APPNAME] Starting the Data Connector with the following commandline:"
-echo "[$(date)][$APPNAME] ${BEAST_FEEDER_COMMAND[*]}"
+[[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] SkySquitter Container Version: $(cat /.VERSION.docker-skysquitter)" || true
+[[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] Beast-Feeder Version: $(cat /.VERSION.beast-feeder)" || true
+[[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] Starting the Data Connector with the following commandline:" || true
+[[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] ${BEAST_FEEDER_COMMAND[*]}" || true
 
 # Now we can start parsing data from SOURCE and pass it to DEST:
 touch /run/lock/beast-feeder.up
