@@ -19,8 +19,7 @@ echo "[$(date)][$APPNAME] Started as an s6 service"
 [[ -z "$NTP_REFSERVER" ]] && NTP_REFSERVER="pool.ntp.org"
 SLEEPTIME="60s"
 RUNFILE="/run/clockdiff.status"
-LOGINTERVAL=3600
-MAX_ERROR_COUNT=5
+
 
 [[ -n "$VERBOSELOGS" ]] && VERBOSELOGS="${VERBOSELOGS,,}" || true
 if [[ "$SVERBOSELOGS" == "true" ]] || [[ "$VERBOSELOGS" == "on" ]] || [[ "$VERBOSELOGS" == "enabled" ]]
@@ -30,6 +29,14 @@ else
     VERBOSELOGS=""
 fi
 
+if [[ -n "$VERBOSELOGS" ]]
+then
+    LOGINTERVAL=600
+    MAX_ERROR_COUNT=3
+else
+    LOGINTERVAL=3600
+    MAX_ERROR_COUNT=5
+fi
 
 lastlog=$(($(date +%s) - LOGINTERVAL - 1))
 errorcount=5
