@@ -1,5 +1,5 @@
 #!/usr/bin/with-contenv bash
-#shellcheck shell=bash disable=SC2153,SC2164,SC2016
+#shellcheck shell=bash disable=SC2153,SC2164,SC2016,SC2015
 
 # -----------------------------------------------------------------------------------
 # Copyright 2022 kx1t - licensed under the terms and conditions
@@ -14,9 +14,8 @@ exec 2>&1
 # trap 'echo -e "[ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAND"' ERR
 
 APPNAME="$(hostname)/clockdiff-service"
-echo "[$(date)][$APPNAME] Started as an s6 service"
 
-[[ -z "$NTP_REFSERVER" ]] && NTP_REFSERVER="pool.ntp.org"
+[[ -z "$NTP_REFSERVER" ]] && NTP_REFSERVER="pool.ntp.org" || true
 SLEEPTIME="60s"
 RUNFILE="/run/clockdiff.status"
 
@@ -28,6 +27,8 @@ then
 else
     VERBOSELOGS=""
 fi
+
+[[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] Started as an s6 service; logging is verbose" || echo "[$(date)][$APPNAME] Started as an s6 service; logging is non-verbose"
 
 if [[ -n "$VERBOSELOGS" ]]
 then
