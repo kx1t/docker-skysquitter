@@ -46,10 +46,8 @@ echo "$(date +%s)000,99999,99999,\"clockdiff not yet available\"" > "${RUNFILE}"
 
 while true
 do
-    sleep $SLEEPTIME
     lastchecked="$(date +%s)000"
     timediff="$(clockdiff $NTP_REFSERVER 2>&1)"
-
 
     # capture a few errors
     if grep -i "command not found" <<< "${timediff}" >/dev/null 2>&1
@@ -73,6 +71,7 @@ do
             echo "[$(date)][$APPNAME] WARNING: Temporary issue resolving NTP server ${NTP_REFSERVER}"
             errorcount=0
         fi
+        sleep $SLEEPTIME
         continue
     fi
     # sometimes the service is down
@@ -84,6 +83,7 @@ do
             echo "[$(date)][$APPNAME] WARNING: Temporary issue connecting to NTP server ${NTP_REFSERVER} (reported down)"
             errorcount=0
         fi
+        sleep $SLEEPTIME
         continue
     fi
     # last check if at least the first field is a digit string
@@ -97,6 +97,7 @@ do
             echo "[$(date)][$APPNAME] Error: ${timediff}"
             errorcount=0
         fi
+        sleep $SLEEPTIME
         continue
     fi
 
@@ -109,4 +110,5 @@ do
         echo "[$(date)][$APPNAME] Clock drift: $(awk '{print $2}' <<< "${timediff}") msec/$(awk '{print $3}' <<< "${timediff}") msec"
         lastlog="$(date +%s)"
     fi
+    sleep $SLEEPTIME
 done
