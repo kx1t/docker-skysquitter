@@ -97,7 +97,7 @@ do
     # Be less verbose in logging
     if (( lastlog + LOGINTERVAL < $(date +%s) ))
     then
-        echo "[$(date)][$APPNAME] Clock drift: $(awk '{print $2}' <<< "${timediff}") msec/$(awk '{print $3}' <<< "${timediff}") msec"
+        echo "[$(date)][$APPNAME] Clock drift for ${ntparray[$ntpindex]}: $(awk '{print $2}' <<< "${timediff}") msec/$(awk '{print $3}' <<< "${timediff}") msec"
         lastlog="$(date +%s)"
     fi
     sleep $SLEEPTIME
