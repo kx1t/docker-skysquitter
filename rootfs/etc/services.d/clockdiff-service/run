@@ -70,6 +70,7 @@ do
         echo "[$(date)][$APPNAME] WARNING: Temporary issue resolving NTP server ${ntparray[$ntpindex]}; cycling to next NTP server"
         (( ntpindex++ ))
         (( ntpindex >= ${#ntparray[@]} )) && ntpindex=0 || true
+        lastlog=$(($(date +%s) - LOGINTERVAL - 1))
         continue
     fi
     # sometimes the service is down
@@ -78,6 +79,7 @@ do
         echo "[$(date)][$APPNAME] WARNING: Temporary issue connecting to NTP server ${ntparray[$ntpindex]} (reported down); cycling to next NTP server"
         (( ntpindex++ ))
         (( ntpindex >= ${#ntparray[@]} )) && ntpindex=0 || true
+        lastlog=$(($(date +%s) - LOGINTERVAL - 1))
         continue
     fi
 
@@ -89,6 +91,7 @@ do
         echo "[$(date)][$APPNAME] Error: ${timediff}; cycling to next NTP server"
         (( ntpindex++ ))
         (( ntpindex >= ${#ntparray[@]} )) && ntpindex=0 || true
+        lastlog=$(($(date +%s) - LOGINTERVAL - 1))
         continue
     fi
 
