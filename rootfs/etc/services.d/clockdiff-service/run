@@ -14,13 +14,12 @@ exec 2>&1
 # trap 'echo -e "[ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAND"' ERR
 
 APPNAME="$(hostname)/clockdiff-service"
-
-[[ -z "$NTP_REFSERVER" ]] && NTP_REFSERVER="pool.ntp.org,ntp1.hetzner.de,ntp2.hetzner.de,ntp3.hetzner.de,time.google.com,time.windows.com,ptbtime1.ptb.de,ptbtime2.ptb.de,ptbtime3.ptb.de" || true
 SLEEPTIME="60s"
 RUNFILE="/run/clockdiff.status"
 
-# parse NTP_REFSERVER array:
+# parse NTP_REFSERVER array and add DEST_HOST as last resort fallback:
 readarray -d "," -t ntparray <<< "$NTP_REFSERVER"
+ntparray+=("${DEST_HOST}")
 ntpindex=0
 
 [[ -n "$VERBOSELOGS" ]] && VERBOSELOGS="${VERBOSELOGS,,}" || true
@@ -47,7 +46,11 @@ echo "$(date +%s)000,99999,99999,\"clockdiff not yet available\"" > "${RUNFILE}"
 while true
 do
     lastchecked="$(date +%s)000"
-    timediff="$(clockdiff "${ntparray[$ntpindex]}" 2>&1)"
+
+    # dont quote ${ntparray[$ntpindex]} below because clockdiff
+    # will think it's always a hostname and fail on resolving IP addresses
+    #shellcheck disable=SC2086
+    timediff="$(clockdiff ${ntparray[$ntpindex]} 2>&1)"
 
     # capture a few fatal errors
     if grep -i "command not found" <<< "${timediff}" >/dev/null 2>&1
