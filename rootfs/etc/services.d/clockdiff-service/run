@@ -67,18 +67,20 @@ do
     if grep -i "Name or service not known" <<< "${timediff}" >/dev/null 2>&1
     then
         echo "${lastchecked},99999,99999,\"Cannot resolve NTP server ${ntparray[$ntpindex]}\"" > "${RUNFILE}"
-        echo "[$(date)][$APPNAME] WARNING: Temporary issue resolving NTP server ${ntparray[$ntpindex]}; cycling to next NTP server"
+        echo -n "[$(date)][$APPNAME] WARNING: Temporary issue resolving NTP server ${ntparray[$ntpindex]}; cycling to NTP server: "
         (( ntpindex++ ))
         (( ntpindex >= ${#ntparray[@]} )) && ntpindex=0 || true
+        echo "${ntparray[$ntpindex]}"
         lastlog=$(($(date +%s) - LOGINTERVAL - 1))
         continue
     fi
     # sometimes the service is down
     if grep -i "is down" <<< "${timediff}" >/dev/null 2>&1
     then
-        echo "[$(date)][$APPNAME] WARNING: Temporary issue connecting to NTP server ${ntparray[$ntpindex]} (reported down); cycling to next NTP server"
+        echo -n "[$(date)][$APPNAME] WARNING: Temporary issue connecting to NTP server ${ntparray[$ntpindex]} (reported down); cycling to NTP server: "
         (( ntpindex++ ))
         (( ntpindex >= ${#ntparray[@]} )) && ntpindex=0 || true
+        echo "${ntparray[$ntpindex]}"
         lastlog=$(($(date +%s) - LOGINTERVAL - 1))
         continue
     fi
@@ -88,9 +90,10 @@ do
     if [ -z "${x##*[!0-9]*}" ]
     then
         echo "${lastchecked},99999,99999,\"Error: ${timediff}\"" > "${RUNFILE}"
-        echo "[$(date)][$APPNAME] Error: ${timediff}; cycling to next NTP server"
+        echo -n "[$(date)][$APPNAME] Error: ${timediff}; cycling to NTP server: "
         (( ntpindex++ ))
         (( ntpindex >= ${#ntparray[@]} )) && ntpindex=0 || true
+        echo "${ntparray[$ntpindex]}"
         lastlog=$(($(date +%s) - LOGINTERVAL - 1))
         continue
     fi
