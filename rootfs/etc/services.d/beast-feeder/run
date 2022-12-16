@@ -63,7 +63,7 @@ BEAST_FEEDER_COMMAND+=("${DEST_PORT}")
 [[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] Started as an s6 service; logging is verbose" || echo "[$(date)][$APPNAME] Started as an s6 service; logging is non-verbose"
 [[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] SkySquitter Container Version: $(cat /.VERSION.docker-skysquitter)" || true
 [[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] Beast-Feeder Version: $(cat /.VERSION.beast-feeder)" || true
-[[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] Starting the Data Connector with the following commandline:" || true
+[[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] Starting the Data Connector with the following command line:" || true
 [[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] ${BEAST_FEEDER_COMMAND[*]}" || true
 
 # Now we can start parsing data from SOURCE and pass it to DEST:
