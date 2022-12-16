@@ -23,6 +23,7 @@ RUN set -x && \
   KEPT_PACKAGES+=(nano) && \
   KEPT_PACKAGES+=(vim) && \
   KEPT_PACKAGES+=(iputils-ping) && \
+  KEPT_PACKAGES+=(iputils-clockdiff) && \
 # KEPT_PACKAGES+=(openjdk-17-jre-headless) && \
   KEPT_PACKAGES+=(iproute2) && \
   KEPT_PACKAGES+=(openresolv) && \

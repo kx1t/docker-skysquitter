@@ -1,0 +1,107 @@
+#!/usr/bin/with-contenv bash
+#shellcheck shell=bash disable=SC2153,SC2164,SC2016,SC2015
+
+# -----------------------------------------------------------------------------------
+# Copyright 2022 kx1t - licensed under the terms and conditions
+# of the MIT License. The terms and conditions of this license are included with the Github
+# distribution of this package, and are also available here:
+# https://github.com/kx1t/docker-skysquitter/
+
+# redirect stderr to stdout so it's picked up in the docker logs
+exec 2>&1
+# all errors will show a line number and the command used to produce the error
+# SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd)/$(basename "$0")"
+# trap 'echo -e "[ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAND"' ERR
+
+APPNAME="$(hostname)/clockdiff-service"
+
+[[ -z "$NTP_REFSERVER" ]] && NTP_REFSERVER="pool.ntp.org,ntp1.hetzner.de,ntp2.hetzner.de,ntp3.hetzner.de,time.google.com,time.windows.com,ptbtime1.ptb.de,ptbtime2.ptb.de,ptbtime3.ptb.de" || true
+SLEEPTIME="60s"
+RUNFILE="/run/clockdiff.status"
+
+# parse NTP_REFSERVER array:
+readarray -d "," -t ntparray <<< "$NTP_REFSERVER"
+ntpindex=0
+
+[[ -n "$VERBOSELOGS" ]] && VERBOSELOGS="${VERBOSELOGS,,}" || true
+if [[ "$VERBOSELOGS" == "true" ]] || [[ "$VERBOSELOGS" == "on" ]] || [[ "$VERBOSELOGS" == "enabled" ]]
+then
+    VERBOSELOGS="TRUE"
+else
+    VERBOSELOGS=""
+fi
+
+[[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] Started as an s6 service; logging is verbose" || echo "[$(date)][$APPNAME] Started as an s6 service; logging is non-verbose"
+
+if [[ -n "$VERBOSELOGS" ]]
+then
+    LOGINTERVAL=600
+else
+    LOGINTERVAL=3600
+fi
+
+lastlog=$(($(date +%s) - LOGINTERVAL - 1))
+
+echo "$(date +%s)000,99999,99999,\"clockdiff not yet available\"" > "${RUNFILE}"
+
+while true
+do
+    lastchecked="$(date +%s)000"
+    timediff="$(clockdiff "${ntparray[$ntpindex]}" 2>&1)"
+
+    # capture a few fatal errors
+    if grep -i "command not found" <<< "${timediff}" >/dev/null 2>&1
+    then
+        echo "${lastchecked},99999,99999,\"clockdiff cmd not installed\"" > "${RUNFILE}"
+        echo "[$(date)][$APPNAME] FATAL: Stopped clockdiff-server: clockdiff not installed"
+        sleep infinity
+    fi
+    if grep -i "nice: Operation not permitted" <<< "${timediff}" >/dev/null 2>&1
+    then
+        echo "${lastchecked},99999,99999,\"NICE capability not available in container\"" > "${RUNFILE}"
+        echo "[$(date)][$APPNAME] FATAL: topped clockdiff-server: NICE capability not available in container"
+        sleep infinity
+    fi
+
+    # capture a few temporary errors; generally we'll cycle to the next NTP_REFSERVER and try again:
+    if grep -i "Name or service not known" <<< "${timediff}" >/dev/null 2>&1
+    then
+        echo "${lastchecked},99999,99999,\"Cannot resolve NTP server ${ntparray[$ntpindex]}\"" > "${RUNFILE}"
+        echo "[$(date)][$APPNAME] WARNING: Temporary issue resolving NTP server ${ntparray[$ntpindex]}; cycling to next NTP server"
+        (( ntpindex++ ))
+        (( ntpindex >= ${#ntparray[@]} )) && ntpindex=0 || true
+        lastlog=$(($(date +%s) - LOGINTERVAL - 1))
+        continue
+    fi
+    # sometimes the service is down
+    if grep -i "is down" <<< "${timediff}" >/dev/null 2>&1
+    then
+        echo "[$(date)][$APPNAME] WARNING: Temporary issue connecting to NTP server ${ntparray[$ntpindex]} (reported down); cycling to next NTP server"
+        (( ntpindex++ ))
+        (( ntpindex >= ${#ntparray[@]} )) && ntpindex=0 || true
+        lastlog=$(($(date +%s) - LOGINTERVAL - 1))
+        continue
+    fi
+
+    # last check if at least the first field is a digit string
+    x="$(awk '{print $1}' <<< "${timediff}")"
+    if [ -z "${x##*[!0-9]*}" ]
+    then
+        echo "${lastchecked},99999,99999,\"Error: ${timediff}\"" > "${RUNFILE}"
+        echo "[$(date)][$APPNAME] Error: ${timediff}; cycling to next NTP server"
+        (( ntpindex++ ))
+        (( ntpindex >= ${#ntparray[@]} )) && ntpindex=0 || true
+        lastlog=$(($(date +%s) - LOGINTERVAL - 1))
+        continue
+    fi
+
+    # if we are here, then we can print the clockdiff values
+    printf "%s000,%s,%s,\"\"\n" "$(awk '{print $1}' <<< "${timediff}")" "$(awk '{print $2}' <<< "${timediff}")" "$(awk '{print $3}' <<< "${timediff}")" > "${RUNFILE}"
+    # Be less verbose in logging
+    if (( lastlog + LOGINTERVAL < $(date +%s) ))
+    then
+        echo "[$(date)][$APPNAME] Clock drift for ${ntparray[$ntpindex]}: $(awk '{print $2}' <<< "${timediff}") msec/$(awk '{print $3}' <<< "${timediff}") msec"
+        lastlog="$(date +%s)"
+    fi
+    sleep $SLEEPTIME
+done

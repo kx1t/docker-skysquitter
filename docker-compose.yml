@@ -10,6 +10,7 @@ services:
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
+      - SYS_NICE
     environment:
       - WG_PRIVKEY=${SSQ_WG_PRIVKEY}
       - WG_PSK=${SSQ_WG_PSK}
