@@ -42,7 +42,8 @@ BEAST_FEEDER_COMMAND+=("${RECV_HOST}")
 BEAST_FEEDER_COMMAND+=("${RECV_PORT}")
 BEAST_FEEDER_COMMAND+=("${DEST_HOST}")
 BEAST_FEEDER_COMMAND+=("${DEST_PORT}")
-BEAST_FEEDER_COMMAND+=("${SET_TIMESTAMP}")
+[[ -n "$SET_TIMESTAMP" ]] && BEAST_FEEDER_COMMAND+=("${SET_TIMESTAMP}")
+[[ -n "$SET_TIMESTAMP" ]] && [[ -n "$CLOCK_DIFF_LIMIT" ]] && BEAST_FEEDER_COMMAND+=("${CLOCK_DIFF_LIMIT}") || true
 
 [[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] Started as an s6 service; logging is verbose" || echo "[$(date)][$APPNAME] Started as an s6 service; logging is non-verbose"
 [[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] SkySquitter Container Version: $(cat /.VERSION.docker-skysquitter)" || true
@@ -54,7 +55,7 @@ BEAST_FEEDER_COMMAND+=("${SET_TIMESTAMP}")
 touch /run/lock/beast-feeder.up
 "${BEAST_FEEDER_COMMAND[@]}" 2>&1 \
      | stdbuf -o0 sed --unbuffered '/^$/d' | stdbuf -o0 awk '{print "[" strftime("%a %b %e %T %Z %Y", systime()) "]['"$APPNAME"'] " $0}'
-rm -rf /run/lock/beast-feeder.up
+rm -f /run/lock/beast-feeder.up
 echo "[$(date)][$APPNAME] ---------------------------------------------------------------"
 echo "[$(date)][$APPNAME] The Data Connector exited... we will restart in 10 seconds"
 sleep 10
