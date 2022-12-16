@@ -28,12 +28,27 @@ then
   RECV_HOST="$(cat /run/recv_host_ip)"
 fi
 
+# check SET_TIMESTAMP parameter
 [[ -n "$SET_TIMESTAMP" ]] && SET_TIMESTAMP="${SET_TIMESTAMP,,}" || true
 if [[ "$SET_TIMESTAMP" == "true" ]] || [[ "$SET_TIMESTAMP" == "on" ]] || [[ "$SET_TIMESTAMP" == "enabled" ]]
 then
     SET_TIMESTAMP="TRUE"
 else
     SET_TIMESTAMP=""
+fi
+
+# Make sure that CLOCK_DIFF_LIMIT is in range
+if [[ -n "$SET_TIMESTAMP" ]]
+then
+    if [[ ! $CLOCK_DIFF_LIMIT =~ ^[0-9]+$ ]]
+    then
+        echo "[$(date)][$APPNAME] WARNING: CLOCK_DIFF_LIMIT is set to \"$CLOCK_DIFF_LIMIT\" which is not a positive integer. Defaulting to CLOCK_DIFF_LIMIT=200"
+        CLOCK_DIFF_LIMIT=200
+    elif (( CLOCK_DIFF_LIMIT < 0 )) || (( CLOCK_DIFF_LIMIT > MAXDRIFT ))
+    then
+        echo "[$(date)][$APPNAME] WARNING: CLOCK_DIFF_LIMIT is set to \"$CLOCK_DIFF_LIMIT\" which is outside the range of 0<CLOCK_DIFF_LIMIT<$MAXDRIFT. Defaulting to CLOCK_DIFF_LIMIT=200"
+         CLOCK_DIFF_LIMIT=200
+    fi
 fi
 
 BEAST_FEEDER_COMMAND=()
