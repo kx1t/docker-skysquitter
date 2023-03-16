@@ -67,6 +67,7 @@ BEAST_FEEDER_COMMAND+=("${DEST_PORT}")
 [[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] ${BEAST_FEEDER_COMMAND[*]}" || true
 
 # Now we can start parsing data from SOURCE and pass it to DEST:
+mkdir -p /run/lock
 touch /run/lock/beast-feeder.up
 "${BEAST_FEEDER_COMMAND[@]}" 2>&1 \
      | stdbuf -o0 sed --unbuffered '/^$/d' | stdbuf -o0 awk '{print "[" strftime("%a %b %e %T %Z %Y", systime()) "]['"$APPNAME"'] " $0}'
