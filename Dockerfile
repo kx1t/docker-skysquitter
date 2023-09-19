@@ -21,7 +21,7 @@ RUN set -x && \
 # Install these packages:
   TEMP_PACKAGES=() && \
   KEPT_PACKAGES=() && \
-  KEPT_PACKAGES+=(netcat) && \
+  KEPT_PACKAGES+=(netcat-traditional) && \
   KEPT_PACKAGES+=(tcpdump) && \
   KEPT_PACKAGES+=(nano) && \
   KEPT_PACKAGES+=(vim) && \
@@ -30,7 +30,7 @@ RUN set -x && \
 # KEPT_PACKAGES+=(openjdk-17-jre-headless) && \
   KEPT_PACKAGES+=(iproute2) && \
   KEPT_PACKAGES+=(openresolv) && \
-  KEPT_PACKAGES+=(wireguard-dkms) && \
+  KEPT_PACKAGES+=(wireguard) && \
   KEPT_PACKAGES+=(wireguard-tools) && \
   TEMP_PACKAGES+=(git) && \
 #
