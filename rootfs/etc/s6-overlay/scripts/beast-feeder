@@ -1,0 +1,77 @@
+#!/command/with-contenv bash
+#shellcheck shell=bash disable=SC2153,SC2164,SC2016,SC2015
+
+# -----------------------------------------------------------------------------------
+# Copyright 2022 kx1t - licensed under the terms and conditions
+# of the MIT License. The terms and conditions of this license are included with the Github
+# distribution of this package, and are also available here:
+# https://github.com/kx1t/docker-skysquitter/
+
+# redirect stderr to stdout so it's picked up in the docker logs
+exec 2>&1
+# all errors will show a line number and the command used to produce the error
+SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd)/$(basename "$0")"
+trap 'echo -e "[ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAND"' ERR
+
+APPNAME="$(hostname)/ssq-feeder"
+
+[[ -n "$VERBOSELOGS" ]] && VERBOSELOGS="${VERBOSELOGS,,}" || true
+if [[ "$VERBOSELOGS" == "true" ]] || [[ "$VERBOSELOGS" == "on" ]] || [[ "$VERBOSELOGS" == "enabled" ]]
+then
+    VERBOSELOGS="TRUE"
+else
+    VERBOSELOGS=""
+fi
+
+if [[ -f /run/recv_host_ip ]]
+then
+  RECV_HOST="$(cat /run/recv_host_ip)"
+fi
+
+# check SET_TIMESTAMP parameter
+[[ -n "$SET_TIMESTAMP" ]] && SET_TIMESTAMP="${SET_TIMESTAMP,,}" || true
+if [[ "$SET_TIMESTAMP" == "true" ]] || [[ "$SET_TIMESTAMP" == "on" ]] || [[ "$SET_TIMESTAMP" == "enabled" ]]
+then
+    SET_TIMESTAMP="TRUE"
+else
+    SET_TIMESTAMP=""
+fi
+
+# Make sure that CLOCK_DIFF_LIMIT is in range
+if [[ -n "$SET_TIMESTAMP" ]]
+then
+    if [[ ! $CLOCK_DIFF_LIMIT =~ ^[0-9]+$ ]]
+    then
+        echo "[$(date)][$APPNAME] WARNING: CLOCK_DIFF_LIMIT is set to \"$CLOCK_DIFF_LIMIT\" which is not a positive integer. Defaulting to CLOCK_DIFF_LIMIT=200"
+        CLOCK_DIFF_LIMIT=200
+    elif (( CLOCK_DIFF_LIMIT < 0 )) || (( CLOCK_DIFF_LIMIT > MAXDRIFT ))
+    then
+        echo "[$(date)][$APPNAME] WARNING: CLOCK_DIFF_LIMIT is set to \"$CLOCK_DIFF_LIMIT\" which is outside the range of 0<CLOCK_DIFF_LIMIT<$MAXDRIFT. Defaulting to CLOCK_DIFF_LIMIT=200"
+         CLOCK_DIFF_LIMIT=200
+    fi
+fi
+
+BEAST_FEEDER_COMMAND=()
+BEAST_FEEDER_COMMAND+=("/usr/local/bin/beast-feeder")
+BEAST_FEEDER_COMMAND+=("${RECV_HOST}")
+BEAST_FEEDER_COMMAND+=("${RECV_PORT}")
+BEAST_FEEDER_COMMAND+=("${DEST_HOST}")
+BEAST_FEEDER_COMMAND+=("${DEST_PORT}")
+[[ -n "$SET_TIMESTAMP" ]] && BEAST_FEEDER_COMMAND+=("${SET_TIMESTAMP}")
+[[ -n "$SET_TIMESTAMP" ]] && [[ -n "$CLOCK_DIFF_LIMIT" ]] && BEAST_FEEDER_COMMAND+=("${CLOCK_DIFF_LIMIT}") || true
+
+[[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] Started as an s6 service; logging is verbose" || echo "[$(date)][$APPNAME] Started as an s6 service; logging is non-verbose"
+[[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] SkySquitter Container Version: $(cat /.VERSION.docker-skysquitter)" || true
+[[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] Beast-Feeder Version: $(cat /.VERSION.beast-feeder)" || true
+[[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] Starting the Data Connector with the following command line:" || true
+[[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] ${BEAST_FEEDER_COMMAND[*]}" || true
+
+# Now we can start parsing data from SOURCE and pass it to DEST:
+mkdir -p /run/lock
+touch /run/lock/beast-feeder.up
+"${BEAST_FEEDER_COMMAND[@]}" 2>&1 \
+     | stdbuf -o0 sed --unbuffered '/^$/d' | stdbuf -o0 awk '{print "[" strftime("%a %b %e %T %Z %Y", systime()) "]['"$APPNAME"'] " $0}'
+rm -f /run/lock/beast-feeder.up
+echo "[$(date)][$APPNAME] ---------------------------------------------------------------"
+echo "[$(date)][$APPNAME] The Data Connector exited... we will restart in 10 seconds"
+sleep 10

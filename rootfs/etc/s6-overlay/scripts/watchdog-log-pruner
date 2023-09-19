@@ -1,0 +1,33 @@
+#!/command/with-contenv bash
+#shellcheck shell=bash disable=SC2164,SC2015
+
+# -----------------------------------------------------------------------------------
+# Copyright 2022 kx1t - licensed under the terms and conditions
+# of the MIT License. The terms and conditions of this license are included with the Github
+# distribution of this package, and are also available here:
+# https://github.com/kx1t/docker-skysquitter/
+
+# redirect stderr to stdout so it's picked up in the docker logs
+exec 2>&1
+# all errors will show a line number and the command used to produce the error
+SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd)/$(basename "$0")"
+trap 'echo -e "[ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAND"' ERR
+
+APPNAME="$(hostname)/watchdog-log-pruner"
+echo "[$(date)][$APPNAME] Started as an s6 service"
+
+[[ -z "$PRUNE_INTERVAL" ]] && PRUNE_INTERVAL=12h || true
+[[ -z "$PRUNE_SIZE" ]] && PRUNE_SIZE=1000 || true
+
+# make sure the log file exists so we can `tail` it later
+touch /var/log/feeder-watchdog.log
+
+while :
+do
+  # limit the logs to max 1000 lines:
+  tail -n "$PRUNE_SIZE" /var/log/feeder-watchdog.log > /tmp/wdlog.tmp
+  mv /tmp/wdlog.tmp /var/log/feeder-watchdog.log
+
+  # sleep a bit before we repeat the whole thing again:
+  sleep "$PRUNE_INTERVAL"
+done
