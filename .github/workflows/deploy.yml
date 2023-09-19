@@ -112,8 +112,6 @@ jobs:
           push: true
           tags: ${{ env.DOCKERHUB_REPO }}/${{ env.DOCKERHUB_IMAGE }}:latest
 
-   echo "${{ env.DOCKERHUB_REPO }}/${{ env.DOCKERHUB_IMAGE }}:latest contains version: ${{ env.VERSION_TAG }}"
-
   deploy_ghcr_multiarch:
     name: Deploy ghcr.io (Multi-Arch)
     needs: [hadolint]
