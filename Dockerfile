@@ -30,7 +30,7 @@ RUN set -x && \
 # KEPT_PACKAGES+=(openjdk-17-jre-headless) && \
   KEPT_PACKAGES+=(iproute2) && \
   KEPT_PACKAGES+=(openresolv) && \
-  KEPT_PACKAGES+=(wireguard) && \
+#  KEPT_PACKAGES+=(wireguard) && \
   KEPT_PACKAGES+=(wireguard-tools) && \
   TEMP_PACKAGES+=(git) && \
 #
