@@ -15,6 +15,8 @@ ENV CLOCK_DIFF_LIMIT=200
 ENV MAXDRIFT=400
 ENV NTP_REFSERVER=ntp1.hetzner.de,ntp2.hetzner.de,ntp3.hetzner.de,time.google.com,time.windows.com,ptbtime1.ptb.de,ptbtime2.ptb.de,ptbtime3.ptb.de,pool.ntp.org
 
+LABEL org.opencontainers.image.description "SkySquitter - https://www.skysquitter.com"
+
 # hadolint ignore=SC2115,SC3054
 RUN set -x && \
 #
