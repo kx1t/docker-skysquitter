@@ -35,7 +35,7 @@ Configuration of SkySquitter has the following prerequisites:
 
 Using the example [`docker-compose.yml`](docker-compose.yml) file, please configure the following parameters. Unless told otherwise by SkySquitter, please do not modify any of the other parameters:
 
-### Mandatory variables:
+### Mandatory variables
 
 | Variable     | Description                                                 |
 |--------------|-------------------------------------------------------------|
@@ -46,7 +46,7 @@ Using the example [`docker-compose.yml`](docker-compose.yml) file, please config
 Note - these variables will be provided to you by SkySquitter. Under specific circumstances, SkySquitter may provide you with a `wg0.conf` file instead,
 that you can install as described in the [Configuration Alternatives](#configuration-alternatives) section below.
 
-### Optional variables:
+### Optional variables
 
 Note -- these variables generally do NOT need changing unless you are using a non-standard setup.
 If your ADS-B generating container or host is not `readsb`, please make sure to set the `RECV_HOST` parameter!

@@ -13,7 +13,9 @@ exec 2>&1
 APPNAME="$(hostname)/watchdog-log-pruner"
 
 # load common functions
+# shellcheck disable=SC1091
 source /scripts/common
+
 # preconfige s6wrap with some args:
 s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}" --args)
 

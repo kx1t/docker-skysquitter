@@ -11,6 +11,7 @@
 exec 2>&1
 
 # load common functions
+# shellcheck disable=SC1091
 source /scripts/common
 
 
