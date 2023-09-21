@@ -77,8 +77,8 @@ BEAST_FEEDER_COMMAND+=("${DF_FILTER:-17,20,21}")
 [[ -n "$VERBOSELOGS" ]] && \
     {   "${s6wrap[@]}" echo "SkySquitter Container Version: $(cat /.VERSION.docker-skysquitter)"
         "${s6wrap[@]}" echo "Beast-Feeder Version: $(cat /.VERSION.beast-feeder)"
-        "${s6wrap[@]}" echo "[$(date)][$APPNAME] Starting the Data Connector with the following command line:"
-        "${s6wrap[@]}" echo "[$(date)][$APPNAME] ${BEAST_FEEDER_COMMAND[*]}"; }
+        "${s6wrap[@]}" echo "Starting the Data Connector with the following command line:"
+        "${s6wrap[@]}" echo "${BEAST_FEEDER_COMMAND[*]}"; }
 
 # Now we can start parsing data from SOURCE and pass it to DEST:
 mkdir -p /run/lock
