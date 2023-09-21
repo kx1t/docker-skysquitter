@@ -11,7 +11,8 @@ fi
 
 rootdir="$1"
 #shellcheck disable=SC2207,SC2011
-list=($(ls "$rootdir/back/cont-init.d/"|xargs))
+list=($(ls "$rootdir/etc/services.d/cont-init.d/"|xargs))
+# (ls sorts by default in alpha order, which is what we want)
 
 for name in "${list[@]:1}"; do
     echo -n "dir $name dependencies: "
@@ -20,7 +21,6 @@ for name in "${list[@]:1}"; do
         echo -n "$dependency "
         mkdir -p "$rootdir/etc/s6-overlay/s6-rc.d/$name/dependencies.d"
         touch "$rootdir/etc/s6-overlay/s6-rc.d/$name/dependencies.d/$dependency"
-        rm -f "$rootdir/etc/s6-overlay/s6-rc.d/$name/dependencies.d/dependency"
     done
     echo ""
 done
