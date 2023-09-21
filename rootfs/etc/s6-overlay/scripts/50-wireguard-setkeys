@@ -1,10 +1,15 @@
 #!/command/with-contenv bash
-# shellcheck shell=bash disable=SC2015
+# shellcheck shell=bash disable=SC2015,SC1091
 
 # This module makes sure that the Private Key and Preshared Key are set before we
 # configure and start up WireGuard
 
 APPNAME="$(hostname)/50-wireguard-setkeys"
+
+# load common functions
+source /scripts/common
+# preconfige s6wrap with some args:
+s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}" --args)
 
 # First we do a few sanity checks:
 
@@ -16,7 +21,7 @@ read -r teststring < /config/wg0.conf
 if [[ "${teststring:0:14}" != "# wg0 template" ]]
 then
   # dont use the template as it has been replaced
-  echo "[$(date)][$APPNAME] Using custom uploaded wg0.conf file - ignoring environment variables"
+  "${s6wrap[@]}" echo "Using custom uploaded wg0.conf file - ignoring environment variables"
   TEMPLATE=false
 else
   # Check if a bunch of variables are available:
@@ -25,15 +30,15 @@ else
 
   if [[ "$WG_PRIVKEY" == "" ]]
   then
-    echo "Emergency!"
-    echo "WG_PRIVKEY must be set. Please update your configuration and restart the container!"
+    "${s6wrap[@]}" echo "Emergency!"
+    "${s6wrap[@]}" echo "WG_PRIVKEY must be set. Please update your configuration and restart the container!"
     EMERGENCY=true
   fi
 
   if [[ "$MY_IP" == "" ]]
   then
-    echo "Emergency!"
-    echo "MY_IP must be set. Please update your configuration and restart the container!"
+    "${s6wrap[@]}" echo "Emergency!"
+    "${s6wrap[@]}" echo "MY_IP must be set. Please update your configuration and restart the container!"
     EMERGENCY=true
   fi
 fi
@@ -41,25 +46,26 @@ fi
 # Now check if wg0.conf is available and has the necessary elements:
 if [[ ! -f /config/wg0.conf ]]
 then
-  echo "Emergency! \"wg0.conf\" cannot be found. Please update your configuration and restart the container!"
+  "${s6wrap[@]}" echo "Emergency! \"wg0.conf\" cannot be found. Please update your configuration and restart the container!"
   EMERGENCY=true
 fi
 
 if ! grep "PrivateKey =" /config/wg0.conf >/dev/null 2>&1
 then
-  echo "Emergency! PrivateKey variable not found in \"wg0.conf\". Please update your configuration and restart the container!"
+  "${s6wrap[@]}" echo "Emergency! PrivateKey variable not found in \"wg0.conf\". Please update your configuration and restart the container!"
   EMERGENCY=true
 fi
 
 if ! grep "Address =" /config/wg0.conf >/dev/null 2>&1
 then
-  echo "Emergency! Address variable not found in \"wg0.conf\". Please update your configuration and restart the container!"
+  "${s6wrap[@]}" echo "Emergency! Address variable not found in \"wg0.conf\". Please update your configuration and restart the container!"
   EMERGENCY=true
 fi
 
 if [[ "$EMERGENCY" == "true" ]]
 then
   # we cannot continue... let's just stop container execution right here
+  "${s6wrap[@]}" echo "Container execution halted."
   sleep infinity
 fi
 

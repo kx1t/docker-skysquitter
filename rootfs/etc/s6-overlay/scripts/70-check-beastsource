@@ -1,11 +1,16 @@
 #!/command/with-contenv bash
-# shellcheck shell=bash disable=SC2153
+# shellcheck shell=bash disable=SC2153,SC1091
 
 # This module makes sure that the Private Key and Preshared Key are set before we
 # configure and start up WireGuard
 
 
 APPNAME="$(hostname)/70-check-beastsource"
+
+# load common functions
+source /scripts/common
+# preconfige s6wrap with some args:
+s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}" --args)
 
 rm -f /run/lock/beast-feeder.up
 
@@ -16,7 +21,7 @@ rm -f /run/lock/beast-feeder.up
 if [[ "$(timeout --preserve-status 2 ping -c 1 "${RECV_HOST}" >/dev/null 2>&1; echo $?)" == "2" ]]
 then
   # Exit code 2 for ping means that the domain name couldn't be resolved
-  echo "[$(date)][$APPNAME] Name resolution for ${RECV_HOST} is no longer available. Falling back to using IP $(cat /run/recv_host_ip)"
+  "${s6wrap[@]}" echo "Name resolution for ${RECV_HOST} is no longer available. Falling back to using IP $(cat /run/recv_host_ip)"
   RECV_HOST="$(cat /run/recv_host_ip)"
 else
   # we don't need the IP address cache anymore
@@ -29,11 +34,11 @@ while [[ $(timeout --preserve-status 5 netcat -z -v "${RECV_HOST}" "${RECV_PORT}
 do
   if (( "$(date +%s)" > starttime + maxwait ))
   then
-    echo "[$(date)][$APPNAME] ${RECV_HOST}:${RECV_PORT} couldn't be reached for $maxwait seconds. Terminating this container."
+    "${s6wrap[@]}" echo "${RECV_HOST}:${RECV_PORT} couldn't be reached for $maxwait seconds. Terminating this container."
     exit 1
   else
-    echo "[$(date)][$APPNAME] ${RECV_HOST}:${RECV_PORT} is not yet available; $(("$(date +%s)" - starttime)) of ${maxwait} seconds elapsed. Trying again in a bit."
+    "${s6wrap[@]}" echo "${RECV_HOST}:${RECV_PORT} is not yet available; $(("$(date +%s)" - starttime)) of ${maxwait} seconds elapsed. Trying again in a bit."
     sleep 5
   fi
 done
-echo "[$(date)][$APPNAME] ${RECV_HOST}:${RECV_PORT} is now available -- your Beast Data source is ready"
+"${s6wrap[@]}" echo "${RECV_HOST}:${RECV_PORT} can be reached -- your Beast Data source is ready"

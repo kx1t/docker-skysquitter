@@ -1,8 +1,8 @@
 #!/command/with-contenv bash
-#shellcheck shell=bash disable=SC2153,SC2164,SC2016,SC2015
+#shellcheck shell=bash disable=SC2015,SC1091
 
 # -----------------------------------------------------------------------------------
-# Copyright 2022 kx1t - licensed under the terms and conditions
+# Copyright 2022, 2023 by Ramon F. Kolb, kx1t - licensed under the terms and conditions
 # of the MIT License. The terms and conditions of this license are included with the Github
 # distribution of this package, and are also available here:
 # https://github.com/kx1t/docker-skysquitter/
@@ -17,27 +17,18 @@ APPNAME="$(hostname)/clockdiff-service"
 SLEEPTIME="60s"
 RUNFILE="/run/clockdiff.status"
 
+# load common functions
+source /scripts/common
+# preconfige s6wrap with some args:
+s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}" --args)
+
 # parse NTP_REFSERVER array and add DEST_HOST as last resort fallback:
 readarray -d "," -t ntparray <<< "$NTP_REFSERVER"
 ntparray+=("${DEST_HOST}")
 ntpindex=0
 
-[[ -n "$VERBOSELOGS" ]] && VERBOSELOGS="${VERBOSELOGS,,}" || true
-if [[ "$VERBOSELOGS" == "true" ]] || [[ "$VERBOSELOGS" == "on" ]] || [[ "$VERBOSELOGS" == "enabled" ]]
-then
-    VERBOSELOGS="TRUE"
-else
-    VERBOSELOGS=""
-fi
-
-[[ -n "$VERBOSELOGS" ]] && echo "[$(date)][$APPNAME] Started as an s6 service; logging is verbose" || echo "[$(date)][$APPNAME] Started as an s6 service; logging is non-verbose"
-
-if [[ -n "$VERBOSELOGS" ]]
-then
-    LOGINTERVAL=600
-else
-    LOGINTERVAL=3600
-fi
+chk_enabled "$VERBOSELOGS" && "${s6wrap[@]}" echo "Started as an s6 service; logging is verbose" || "${s6wrap[@]}" echo "Started as an s6 service; logging is non-verbose"
+chk_enabled "$VERBOSELOGS" &&  LOGINTERVAL=600 || LOGINTERVAL=3600
 
 lastlog=$(($(date +%s) - LOGINTERVAL - 1))
 
@@ -53,24 +44,21 @@ do
     timediff="$(clockdiff ${ntparray[$ntpindex]} 2>&1)"
 
     # capture a few fatal errors
-    if grep -i "command not found" <<< "${timediff}" >/dev/null 2>&1
-    then
+    if grep -i "command not found" <<< "${timediff}" >/dev/null 2>&1; then
         echo "${lastchecked},99999,99999,\"clockdiff cmd not installed\"" > "${RUNFILE}"
-        echo "[$(date)][$APPNAME] FATAL: Stopped clockdiff-server: clockdiff not installed"
+        "${s6wrap[@]}" echo "FATAL: Stopped clockdiff-server: clockdiff not installed"
         sleep infinity
     fi
-    if grep -i "nice: Operation not permitted" <<< "${timediff}" >/dev/null 2>&1
-    then
+    if grep -i "nice: Operation not permitted" <<< "${timediff}" >/dev/null 2>&1; then
         echo "${lastchecked},99999,99999,\"NICE capability not available in container\"" > "${RUNFILE}"
-        echo "[$(date)][$APPNAME] FATAL: topped clockdiff-server: NICE capability not available in container"
+        "${s6wrap[@]}" echo "FATAL: topped clockdiff-server: NICE capability not available in container"
         sleep infinity
     fi
 
     # capture a few temporary errors; generally we'll cycle to the next NTP_REFSERVER and try again:
-    if grep -i "Name or service not known" <<< "${timediff}" >/dev/null 2>&1
-    then
+    if grep -i "Name or service not known" <<< "${timediff}" >/dev/null 2>&1; then
         echo "${lastchecked},99999,99999,\"Cannot resolve NTP server ${ntparray[$ntpindex]}\"" > "${RUNFILE}"
-        echo -n "[$(date)][$APPNAME] WARNING: Temporary issue resolving NTP server ${ntparray[$ntpindex]}; cycling to NTP server: "
+        "${s6wrap[@]}" echo -n "WARNING: Temporary issue resolving NTP server ${ntparray[$ntpindex]}; cycling to NTP server: "
         (( ntpindex++ ))
         (( ntpindex >= ${#ntparray[@]} )) && ntpindex=0 || true
         echo "${ntparray[$ntpindex]}"
@@ -78,9 +66,8 @@ do
         continue
     fi
     # sometimes the service is down
-    if grep -i "is down" <<< "${timediff}" >/dev/null 2>&1
-    then
-        echo -n "[$(date)][$APPNAME] WARNING: Temporary issue connecting to NTP server ${ntparray[$ntpindex]} (reported down); cycling to NTP server: "
+    if grep -i "is down" <<< "${timediff}" >/dev/null 2>&1; then
+        "${s6wrap[@]}" echo -n "WARNING: Temporary issue connecting to NTP server ${ntparray[$ntpindex]} (reported down); cycling to NTP server: "
         (( ntpindex++ ))
         (( ntpindex >= ${#ntparray[@]} )) && ntpindex=0 || true
         echo "${ntparray[$ntpindex]}"
@@ -90,10 +77,9 @@ do
 
     # last check if at least the first field is a digit string
     x="$(awk '{print $1}' <<< "${timediff}")"
-    if [ -z "${x##*[!0-9]*}" ]
-    then
+    if [ -z "${x##*[!0-9]*}" ]; then
         echo "${lastchecked},99999,99999,\"Error: ${timediff}\"" > "${RUNFILE}"
-        echo -n "[$(date)][$APPNAME] Error: ${timediff}; cycling to NTP server: "
+        "${s6wrap[@]}" echo -n "Error: ${timediff}; cycling to NTP server: "
         (( ntpindex++ ))
         (( ntpindex >= ${#ntparray[@]} )) && ntpindex=0 || true
         echo "${ntparray[$ntpindex]}"
@@ -104,9 +90,8 @@ do
     # if we are here, then we can print the clockdiff values
     printf "%s000,%s,%s,\"\"\n" "$(awk '{print $1}' <<< "${timediff}")" "$(awk '{print $2}' <<< "${timediff}")" "$(awk '{print $3}' <<< "${timediff}")" > "${RUNFILE}"
     # Be less verbose in logging
-    if (( lastlog + LOGINTERVAL < $(date +%s) ))
-    then
-        echo "[$(date)][$APPNAME] Clock drift for ${ntparray[$ntpindex]}: $(awk '{print $2}' <<< "${timediff}") msec/$(awk '{print $3}' <<< "${timediff}") msec"
+    if (( lastlog + LOGINTERVAL < $(date +%s) )); then
+        "${s6wrap[@]}" echo "Clock drift for ${ntparray[$ntpindex]}: $(awk '{print $2}' <<< "${timediff}") msec/$(awk '{print $3}' <<< "${timediff}") msec"
         lastlog="$(date +%s)"
     fi
     sleep $SLEEPTIME
