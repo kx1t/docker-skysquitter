@@ -116,7 +116,7 @@ do
           TCPD_FAILED=false
        fi
       else
-        (( TCPD_FAILURE_LASTTIME - TCPD_FAILURE_FIRSTTIME > MAXWAIT / 2 )) && "${s6wrap[@]}" echo "DataFlow Failure: No data is flowing to UDP port ${DEST_PORT} -- Failed for $(("$(date +%s)" - TCPD_FAILURE_FIRSTTIME)) seconds; Maximum Failure Time is ${MAXWAIT} seconds.." | tee -a /var/log/feeder-watchdog.log
+        (( TCPD_FAILURE_LASTTIME - TCPD_FAILURE_FIRSTTIME > MAXWAIT / 2 )) && "${s6wrap[@]}" echo "DataFlow Failure: No data is flowing to UDP port ${DEST_PORT} -- Failed for $(("$(date +%s)" - TCPD_FAILURE_FIRSTTIME)) seconds; Maximum Failure Time is ${MAXWAIT} seconds." | tee -a /var/log/feeder-watchdog.log
         TCPD_FAILED=true
       fi
     else
