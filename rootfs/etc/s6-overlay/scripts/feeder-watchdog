@@ -34,7 +34,7 @@ touch /var/log/feeder-watchdog.log
 term_wg ()
 { # function to trap SIGINT and SIGTERM to bring WG down upon exit
   pkill -SIGTERM -f "python3 /usr/local/bin/beast-feeder"
-  wg-quick down /config/wg0.conf
+  "${s6wrap[@]}" wg-quick down /config/wg0.conf
   /run/s6/basedir/bin/halt || s6-svscanctl -bq /var/run/s6/services || true
       # ^^ `halt`` is the S6v3 command to bring down the container, `s6-svscanctl`` is for S6v2
   "${s6wrap[@]}" echo "WG repair attempts unsuccessful; bringing down the container."
@@ -43,10 +43,10 @@ term_wg ()
 
 fix_wg ()
 { # First bring down the VPN:
-  wg-quick down /config/wg0.conf
+  "${s6wrap[@]}" wg-quick down /config/wg0.conf
   sleep 5
   # Bring VPN back up:
-  wg-quick up /config/wg0.conf
+  "${s6wrap[@]}" wg-quick up /config/wg0.conf
   sleep 10
   # Check if we were successful
   ping -c5 "$1" >/dev/null 2>&1 && return 0 || return 1

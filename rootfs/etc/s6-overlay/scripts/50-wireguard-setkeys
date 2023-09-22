@@ -16,6 +16,9 @@ s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}" --args)
 # put a wg0.conf template in place if needed:
 [[ ! -f /config/wg0.conf ]] && cp /root/wg0.conf /config || true
 
+# make it user-readable only:
+chmod u=r,go= /config/wg0.conf || true
+
 # check if the template has been replaced:
 read -r teststring < /config/wg0.conf
 if [[ "${teststring:0:14}" != "# wg0 template" ]]
