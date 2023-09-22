@@ -1,0 +1,91 @@
+#!/command/with-contenv bash
+#shellcheck shell=bash disable=SC2015,SC1091
+
+# -----------------------------------------------------------------------------------
+# Copyright 2022, 2023 by Ramon F. Kolb, kx1t - licensed under the terms and conditions
+# of the MIT License. The terms and conditions of this license are included with the Github
+# distribution of this package, and are also available here:
+# https://github.com/kx1t/docker-skysquitter/
+
+# redirect stderr to stdout so it's picked up in the docker logs
+exec 2>&1
+
+# load common functions
+source /scripts/common
+
+# all errors will show a line number and the command used to produce the error
+#shellcheck disable=SC2164
+SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd)/$(basename "$0")"
+trap 'echo -e "[ERROR] $SCRIPT_PATH in line $LINENO when executing: $BASH_COMMAND"' ERR
+
+APPNAME="$(hostname)/ssq-feeder"
+
+# preconfige s6wrap with some args:
+s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}" --args)
+
+[[ -n "$VERBOSELOGS" ]] && VERBOSELOGS="${VERBOSELOGS,,}" || true
+if [[ "$VERBOSELOGS" == "true" ]] || [[ "$VERBOSELOGS" == "on" ]] || [[ "$VERBOSELOGS" == "enabled" ]]; then
+    VERBOSELOGS="TRUE"
+else
+    VERBOSELOGS=""
+fi
+
+if [[ -f /run/recv_host_ip ]]; then
+  RECV_HOST="$(cat /run/recv_host_ip)"
+fi
+
+# check SET_TIMESTAMP parameter
+if chk_enabled "$SET_TIMESTAMP"; then
+    SET_TIMESTAMP="TRUE"
+elif chk_disabled "$SET_TIMESTAMP"; then
+    SET_TIMESTAMP="FALSE"
+else
+    unset SET_TIMESTAMP
+fi
+
+# Make sure that CLOCK_DIFF_LIMIT is in range
+if [[ -n "$SET_TIMESTAMP" ]]; then
+    if [[ ! $CLOCK_DIFF_LIMIT =~ ^[0-9]+$ ]]; then
+        "${s6wrap[@]}" echo "WARNING: CLOCK_DIFF_LIMIT is set to \"$CLOCK_DIFF_LIMIT\" which is not a positive integer. Defaulting to CLOCK_DIFF_LIMIT=200"
+        CLOCK_DIFF_LIMIT=200
+    elif (( CLOCK_DIFF_LIMIT < 0 )) || (( CLOCK_DIFF_LIMIT > MAXDRIFT )); then
+        "${s6wrap[@]}" echo "WARNING: CLOCK_DIFF_LIMIT is set to \"$CLOCK_DIFF_LIMIT\" which is outside the range of 0<CLOCK_DIFF_LIMIT<$MAXDRIFT. Defaulting to CLOCK_DIFF_LIMIT=200"
+         CLOCK_DIFF_LIMIT=200
+    fi
+fi
+
+# Make sure that DF_FILTER is clean
+if [[ -n "${DF_FILTER}" ]] && [[ "${DF_FILTER}" != "all" ]] && [[ "${DF_FILTER//[[:space:]]/}" =~ [^0-9,] ]]; then
+        "${s6wrap[@]}" echo "WARNING: DF_FILTER is set to \"${DF_FILTER}\" which contains illegal characters."
+        "${s6wrap[@]}" echo "         Only digits and commas are allowed. We will use the default value instead."
+        unset DF_FILTER
+else
+    DF_FILTER="${DF_FILTER//[[:space:]]/}"
+fi
+
+BEAST_FEEDER_COMMAND=()
+BEAST_FEEDER_COMMAND+=("/usr/local/bin/beast-feeder")
+BEAST_FEEDER_COMMAND+=("${RECV_HOST}")
+BEAST_FEEDER_COMMAND+=("${RECV_PORT:-30005}")
+BEAST_FEEDER_COMMAND+=("${DEST_HOST:-10.9.2.1}")
+BEAST_FEEDER_COMMAND+=("${DEST_PORT:-11092}")
+BEAST_FEEDER_COMMAND+=("${SET_TIMESTAMP:-TRUE}")
+BEAST_FEEDER_COMMAND+=("${CLOCK_DIFF_LIMIT:-200}")
+BEAST_FEEDER_COMMAND+=("${DF_FILTER:-17,20,21}")
+
+[[ -n "$VERBOSELOGS" ]] && "${s6wrap[@]}" echo "Started as an s6 service; logging is verbose" || "${s6wrap[@]}" echo "Started as an s6 service; logging is non-verbose"
+[[ -n "$VERBOSELOGS" ]] && \
+    {   "${s6wrap[@]}" echo "SkySquitter Container Version: $(cat /.VERSION.docker-skysquitter)"
+        "${s6wrap[@]}" echo "Beast-Feeder Version: $(cat /.VERSION.beast-feeder)"
+        "${s6wrap[@]}" echo "Starting the Data Connector with the following command line:"
+        "${s6wrap[@]}" echo "${BEAST_FEEDER_COMMAND[*]}"; }
+
+# Now we can start parsing data from SOURCE and pass it to DEST:
+mkdir -p /run/lock
+touch /run/lock/beast-feeder.up
+#shellcheck disable=SC2048,SC2086
+"${s6wrap[@]}" ${BEAST_FEEDER_COMMAND[*]}
+rm -f /run/lock/beast-feeder.up
+"${s6wrap[@]}" echo "---------------------------------------------------------------"
+"${s6wrap[@]}" echo "The Data Connector exited... we will restart in 10 seconds"
+sleep 10

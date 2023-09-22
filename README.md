@@ -1,11 +1,26 @@
 # docker-skysquitter
+
  a Docker container to feed SkySquitter with Beast data
 
+- [docker-skysquitter](#docker-skysquitter)
+  - [What is it?](#what-is-it)
+  - [Feeding SkySquitter](#feeding-skysquitter)
+  - [SkySquitter container configuration](#skysquitter-container-configuration)
+    - [Mandatory variables:](#mandatory-variables)
+    - [Optional variables:](#optional-variables)
+  - [Mandatory Container Capabilities and System Controls](#mandatory-container-capabilities-and-system-controls)
+  - [How do I know if things work?](#how-do-i-know-if-things-work)
+  - [Troubleshooting](#troubleshooting)
+  - [Configuration Alternatives](#configuration-alternatives)
+  - [OWNERSHIP AND LICENSE](#ownership-and-license)
+
 ## What is it?
+
 SkySquitter collects ADS-B data from feeders like dump1090/dump1090-fa/readsb/tar1090 and creates a weather map based on this. The service is experimental. More information is available at [https://www.skysquitter.com](https://www.skysquitter.com).
 
 ## Feeding SkySquitter
-**Skysquitter uses crowd-sourced data on a very limited, invitation-only basis. If you think you would like to contribute, please contact info@SkySquitter.com.**
+
+**Skysquitter uses crowd-sourced data on a very limited, invitation-only basis. If you think you would like to contribute, please contact [info@SkySquitter.com](info@SkySquitter.com).**
 
 ## SkySquitter container configuration
 
@@ -20,7 +35,8 @@ Configuration of SkySquitter has the following prerequisites:
 
 Using the example [`docker-compose.yml`](docker-compose.yml) file, please configure the following parameters. Unless told otherwise by SkySquitter, please do not modify any of the other parameters:
 
-### Mandatory variables:
+### Mandatory variables
+
 | Variable     | Description                                                 |
 |--------------|-------------------------------------------------------------|
 | `WG_PRIVKEY` | Private Key provided by SkySquitter                         |
@@ -30,7 +46,8 @@ Using the example [`docker-compose.yml`](docker-compose.yml) file, please config
 Note - these variables will be provided to you by SkySquitter. Under specific circumstances, SkySquitter may provide you with a `wg0.conf` file instead,
 that you can install as described in the [Configuration Alternatives](#configuration-alternatives) section below.
 
-### Optional variables:
+### Optional variables
+
 Note -- these variables generally do NOT need changing unless you are using a non-standard setup.
 If your ADS-B generating container or host is not `readsb`, please make sure to set the `RECV_HOST` parameter!
 
@@ -44,15 +61,18 @@ If your ADS-B generating container or host is not `readsb`, please make sure to 
 | `PRUNE_INTERVAL`  | Interval for log file pruning                                                       | `12h`                    |
 | `PRUNE_SIZE`      | Maximum number of log lines left when pruning log files                             | `1000`                   |
 | `BEASTDEV`        | If defined, download the latest `beast-feeder.py` from the dev branch of the [skysquitter22/beast-feeder](https://github.com/skysquitter22/beast-feeder) repo. You can also define a different repo by putting the `raw` URL of the beast-feeder.py file as value to this parameter. | (not defined) |
-| `SET_TIMESTAMP`   | If set to TRUE/ON/ENABLED, the system will send timestamped data to the server. Note -- please only enable this if your system clock is GPS or NTP enabled and your container time is set to UTC | (not defined) |
+| `SET_TIMESTAMP`   | If not set to FALSE/OFF/DISABLED, the system will send timestamped data to the server. Note -- please only enable this if your system clock is GPS or NTP enabled and your container time is set to UTC | ENABLED |
 | `NTP_REFSERVER`   | Domain name of a NTP server that will be used to calculate the system's clock drift. Ignored if `SET_TIMESTAMP` is not switched on. |
 `pool.ntp.org` |
 | `CLOCK_DIFF_LIMIT` | Maximum acceptable clock diff (in msec). If `SET_TIMESTAMP` is switched on and the `clock diff` exceeds this value, then data isn't sent to the server. Value when omitted: `200` (msec). Ignored if `SET_TIMESTAMP` is not switched on. |
+| `DF_FILTER` | Comma separated list of Downlink Format messages that will be forwarded to the SkySquitter server, or `all` to forward all DF messages. If empty, the default value will be used. Do not change this value unless SkySquitter tells you to do so! | `17,20,21` |
 | `VERBOSELOGS` | If set to TRUE/ON/ENABLED, it will show more verbose logging information in the Docker Logs. | Off |
 
 ## Mandatory Container Capabilities and System Controls
-Make sure to add the following capabilities and system controls to your Docker Container. See docker-compose.yml for an example. These are mandatory for the container to work properly:
-```
+
+Make sure to add the following capabilities and system controls to your Docker Container. See docker-compose.yml for an example. These are mandatory for the container to work properly; specifically they are needed to enable the WireGuard secure connection to the SkySquitter service (`NET_ADMIN` and `SYS_MODULE`) and to reduce system load (`SYS_NICE`):
+
+```yaml
 cap_add:
   - NET_ADMIN
   - SYS_MODULE
@@ -62,6 +82,7 @@ sysctls:
 ```
 
 ## How do I know if things work?
+
 There are several ways to figure out if things are working.
 Note - in the commands below, we are assuming that your SkySquitter container is named `ssq`. If you named it differently, please adapt the command accordingly.
 
@@ -74,6 +95,7 @@ Note - in the commands below, we are assuming that your SkySquitter container is
 | Watchdog logs     | `docker exec -it ssq cat /var/log/feeder-watchdog.log` | This will show you up to 1000 lines of the Watchdog Logs. If nothing is shown, the logs are empty and the watchdog never had to take corrective action.                                                                                                                            |
 
 ## Troubleshooting
+
 The SkySquitter container is reasonably "self-correcting": if your Beast Host or the SkySquitter network cannot be reached, it will take progressive steps to try to remedy the issue.
 The container restart itself if that is the case.
 If problems continue, then this has probably to do with your setup. Make sure that the `capadd` and `sysctl` sections are present in your [`docker-compose.yml`](docker-compose.yml) file and use the [example](docker-compose.yml) in this repo as your starting point.
@@ -93,9 +115,10 @@ To install this `wg0.conf` file:
 5. Restart the container stack with `docker-compose up -d`
 
 ## OWNERSHIP AND LICENSE
-SkySquitter is owned by, and copyright by SkySquitter. All rights reserved.
-Contact info@SkySquitter.com for more information.
 
-The software, scripts, and data of this repository were created by kx1t and are licensed under the [MIT License](LICENSE).
+SkySquitter is owned by, and copyright by SkySquitter. All rights reserved.
+Contact [info@SkySquitter.com](info@SkySquitter.com) for more information.
+
+The software, scripts, and data of this repository are Copyright (C) 2022-2023 by Ramon F. Kolb, kx1t, and are licensed under the [MIT License](LICENSE).
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

@@ -1,0 +1,21 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash disable=SC2016,SC1091
+
+# This module makes sure that the Private Key and Preshared Key are set before we
+# configure and start up WireGuard
+
+APPNAME="$(hostname)/60-start-wg"
+
+# load common functions
+source /scripts/common
+# preconfige s6wrap with some args:
+s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}" --args)
+
+if "${s6wrap[@]}" wg-quick up /config/wg0.conf 2>&1; then
+  "${s6wrap[@]}" echo "WireGuard VPN brought up."
+else
+  "${s6wrap[@]}" echo "WireGuard VPN cannot be started!"
+  "${s6wrap[@]}" echo "Please check the configuration! Container will exit in 10 seconds."
+  sleep 10
+  exit 1
+fi
