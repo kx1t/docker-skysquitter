@@ -41,7 +41,7 @@ do
     # dont quote ${ntparray[$ntpindex]} below because clockdiff
     # will think it's always a hostname and fail on resolving IP addresses
     #shellcheck disable=SC2086
-    timediff="$(clockdiff ${ntparray[$ntpindex]} 2>&1)"
+    timediff="$(clockdiff ${ntparray[$ntpindex]} 2>&1)" || true
 
     # capture a few fatal errors
     if grep -i "command not found" <<< "${timediff}" >/dev/null 2>&1; then
