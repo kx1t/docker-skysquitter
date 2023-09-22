@@ -68,7 +68,7 @@ do
     # sometimes the service is down
     if grep -i "is down" <<< "${timediff}" >/dev/null 2>&1; then
         "${s6wrap[@]}" echo -n "WARNING: Temporary issue connecting to NTP server ${ntparray[$ntpindex]} (reported down); cycling to NTP server: "
-        (( ntpindex++ ))
+        (( ntpindex++ )) || true
         (( ntpindex >= ${#ntparray[@]} )) && ntpindex=0 || true
         echo "${ntparray[$ntpindex]}"
         lastlog=$(($(date +%s) - LOGINTERVAL - 1))
